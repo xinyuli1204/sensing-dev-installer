@@ -19,7 +19,7 @@ if (-not $msiUrl ) {
     if ($version.StartsWith("v")) {
         $version = $version.Substring(1)
     }
-    $msiUrl = "https://github.com/fixstars/sensing-dev-installer/releases/download/v${version}/sensing-dev-installer-${version}-win64.msi"
+    $msiUrl = "https://github.com/Sensing-Dev/sensing-dev-installer/releases/download/v${version}/sensing-dev-installer-${version}-win64.msi"
 }
 
 # Download MSI to a temp location
