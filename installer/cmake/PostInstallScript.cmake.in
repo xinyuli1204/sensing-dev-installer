@@ -1,0 +1,5 @@
+# invoke_ps_install_template.cmake.in
+
+execute_process(COMMAND powershell.exe -ExecutionPolicy Bypass 
+                        -File "@PS_SCRIPT_PATH@" 
+                        -installPath "@INSTALLATION_DIR@")
