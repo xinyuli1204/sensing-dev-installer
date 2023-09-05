@@ -1,7 +1,7 @@
 param(
     [string]$version="v23.08.02-test1",
     [string]$msiUrl ,
-    [string]$installPath = $env:APPDATA,
+    [string]$installPath = "$env:UserProfile\AppData\local\Sensing-Dev",
     [string]$relativeScriptPath = "tools\Env.ps1"
 )
 # Check if the MSI URL and Install Path are provided
@@ -19,7 +19,11 @@ if (-not $msiUrl ) {
     if ($version.StartsWith("v")) {
         $version = $version.Substring(1)
     }
-    $msiUrl = "https://github.com/Sensing-Dev/sensing-dev-installer/releases/download/v${version}/sensing-dev-installer-${version}-win64.msi"
+    # if the tag has "-"
+    $majorVersion = $version -split "-"
+    $majorVersion = $majorVersion[0]
+    echo $majorVersion
+    $msiUrl = "https://github.com/Sensing-Dev/sensing-dev-installer/releases/download/v${version}/sensing-dev-installer-${majorVersion}-win64.msi"
 }
 
 # Download MSI to a temp location
