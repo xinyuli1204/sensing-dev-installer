@@ -1,0 +1,3 @@
+[submodule "installer/external/GenDC"]
+	path = installer/external/GenDC
+	url = https://github.com/Sensing-Dev/GenDC
