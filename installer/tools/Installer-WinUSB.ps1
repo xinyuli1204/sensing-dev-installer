@@ -17,6 +17,10 @@
 
 #>
 
+# Function to update the progress bar
+function Update-ProgressBar($Percentage, $Status) {
+    Write-Progress -Activity "Installing WinUSB Device Driver" -Status $Status -PercentComplete $Percentage
+}
 
 $installPath = "$env:LOCALAPPDATA"
 Write-Verbose "installPath = $installPath"
@@ -54,8 +58,7 @@ if ($Url.EndsWith("zip")) {
     # Attempt to extract to the temporary extraction directory
     try {
         [System.IO.Compression.ZipFile]::ExtractToDirectory($tempZipPath, $tempExtractionPath)
-        ls $tempExtractionPath               
-        
+        ls $tempExtractionPath
     }
     catch {
         Write-Error "Extraction failed. Original contents remain unchanged."
@@ -100,7 +103,16 @@ else{
         Verb                   = "RunAs"  # This attempts to run the process as an administrator
     }
     try {
-        Start-Process @pnputilOptions -ErrorAction Stop
+        $process = Start-Process @pnputilOptions -PassThru
+
+        # Poll the process for its exit while updating the progress
+        while (!$process.HasExited) {
+            $percentageComplete = ($process.TotalProcessorTime.TotalMilliseconds / $process.StartTime.AddMinutes(5).TotalMilliseconds) * 100
+            Update-ProgressBar $percentageComplete "Installing WinUSB..."
+            Start-Sleep -Milliseconds 500
+        }
+    
+        Update-ProgressBar 100 "Installation complete"    
     }
     catch {
         Write-Error "An error occurred while running pnputil: $_"
