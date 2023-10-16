@@ -22,6 +22,18 @@ function Update-ProgressBar($Percentage, $Status) {
     Write-Progress -Activity "Installing WinUSB Device Driver" -Status $Status -PercentComplete $Percentage
 }
 
+# Function to start a process and display a progress bar while waiting for it to complete
+function Start-ProcessWithProgressBar($Options, $Status) {
+    $process = Start-Process @Options -PassThru
+
+    # Poll the process for its exit while updating the progress
+    while (!$process.HasExited) {
+        $percentageComplete = ($process.TotalProcessorTime.TotalMilliseconds / $process.StartTime.AddMinutes(5).TotalMilliseconds) * 100
+        Update-ProgressBar $percentageComplete $Status
+        Start-Sleep -Milliseconds 500
+    }
+}
+
 $installPath = "$env:LOCALAPPDATA"
 Write-Verbose "installPath = $installPath"
 # Download win_usb installer
@@ -71,6 +83,7 @@ if ($Url.EndsWith("zip")) {
 
 
 # Run Winusb installer
+Write-Host "This may take a few minutes. Starting the installation..."
 
 Write-Verbose "Start winUsb installer"
 $TempDir = "$tempExtractionPath/winusb/temp"
@@ -83,7 +96,9 @@ $winUSBOptions = @{
     Wait                   = $true
     Verb                   = "RunAs"  # This attempts to run the process as an administrator
 }
-Start-Process @winUSBOptions
+# Start winusb_installer.exe process with progress bar
+Start-ProcessWithProgressBar @winUSBOptions "Executing winUsb installer..."
+
 Write-Verbose "End winUsb installer"
 
 # Run Driver installer
@@ -103,16 +118,8 @@ else{
         Verb                   = "RunAs"  # This attempts to run the process as an administrator
     }
     try {
-        $process = Start-Process @pnputilOptions -PassThru
-
-        # Poll the process for its exit while updating the progress
-        while (!$process.HasExited) {
-            $percentageComplete = ($process.TotalProcessorTime.TotalMilliseconds / $process.StartTime.AddMinutes(5).TotalMilliseconds) * 100
-            Update-ProgressBar $percentageComplete "Installing WinUSB..."
-            Start-Sleep -Milliseconds 500
-        }
-    
-        Update-ProgressBar 100 "Installation complete"    
+        # Start Pnputil process with progress bar
+        Start-ProcessWithProgressBar @pnputilOptions "Installing driver..."  
     }
     catch {
         Write-Error "An error occurred while running pnputil: $_"
