@@ -7,11 +7,11 @@
     This PowerShell script downloads and installs a USB device driver using WinUSB and then runs a driver installer. It also deletes temporary files after the installation.
 
 .NOTES
-    File Name      : Installer-WinUSB.ps1 
+    File Name      : installer-WinUSB.ps1 
     Prerequisite   : PowerShell 5.0 or later
 
 .EXAMPLE
-    .\Installer-WinUSB.ps1 
+    .\installer-WinUSB.ps1 
 
     This example downloads and runs the script to install a USB device driver .
 
@@ -132,4 +132,3 @@ else{
 Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"Remove-Item -Path '$tempExtractionPath' -Recurse -Force -Confirm:`$false`""
 
 Write-Verbose "End Driver installer"
-
