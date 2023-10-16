@@ -16,25 +16,7 @@
     This example downloads and runs the script to install a USB device driver .
 
 #>
-
-# Function to update the progress bar
-function Update-ProgressBar($Percentage, $Status) {
-    Write-Progress -Activity "Installing WinUSB Device Driver" -Status $Status -PercentComplete $Percentage
-}
-
-# Function to start a process and display a progress bar while waiting for it to complete
-function Start-ProcessWithProgressBar($Options, $Status) {
-    $process = Start-Process @Options -PassThru
-
-    # Poll the process for its exit while updating the progress
-    while (!$process.HasExited) {
-        $percentageComplete = ($process.TotalProcessorTime.TotalMilliseconds / $process.StartTime.AddMinutes(5).TotalMilliseconds) * 100
-        Update-ProgressBar $percentageComplete $Status
-        Start-Sleep -Milliseconds 500
-    }
-}
-
-$installPath = "$env:LOCALAPPDATA"
+$installPath = "$env:TEMP"
 Write-Verbose "installPath = $installPath"
 # Download win_usb installer
 
@@ -64,20 +46,19 @@ if ($Url.EndsWith("zip")) {
 
     $tempExtractionPath = "$installPath\_tempWinUSBExtraction"
     # Create the temporary extraction directory if it doesn't exist
-    if (-not (Test-Path $tempExtractionPath)) {
-        New-Item -Path $tempExtractionPath -ItemType Directory
+    if (Test-Path $tempExtractionPath) {
+       Remove-Item -Path $tempExtractionPath -Force -Recurse -Confirm:$false
     }
+    New-Item -Path $tempExtractionPath -ItemType Directory
+
     # Attempt to extract to the temporary extraction directory
     try {
         [System.IO.Compression.ZipFile]::ExtractToDirectory($tempZipPath, $tempExtractionPath)
         ls $tempExtractionPath
     }
     catch {
-        Write-Error "Extraction failed. Original contents remain unchanged."
-        # Optional: Cleanup the temporary extraction directory
-        Remove-Item -Path $tempExtractionPath -Force -Recurse
+        Write-Error "Extraction failed...."
     }    
-     # Optionally delete the ZIP file after extraction
      Remove-Item -Path $tempZipPath -Force
 }
 
@@ -97,8 +78,8 @@ if (Test-Path $tempExtractionPath) {
         Wait                   = $true
         Verb                   = "RunAs"  # This attempts to run the process as an administrator
     }
-    # Start winusb_installer.exe process with progress bar
-    Start-ProcessWithProgressBar @winUSBOptions "Executing winUsb installer..."
+    # Start winusb_installer.exe process 
+    Start-Process @winUSBOptions 
 
     Write-Verbose "End winUsb installer"
 }
@@ -119,12 +100,12 @@ else{
         Verb                   = "RunAs"  # This attempts to run the process as an administrator
     }
     try {
-        # Start Pnputil process with progress bar
-        Start-ProcessWithProgressBar @pnputilOptions "Installing driver..."  
+        # Start Pnputil process 
+        Start-Process @pnputilOptions 
+        Write-Host "Sucessfully installed winUSB driver"
     }
     catch {
         Write-Error "An error occurred while running pnputil: $_"
-        # You can choose to handle the error as needed, such as logging or taking corrective action.
     }
 }
 
