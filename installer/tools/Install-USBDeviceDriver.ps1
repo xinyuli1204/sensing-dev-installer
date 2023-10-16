@@ -4,29 +4,28 @@
     Install USB device driver using WinUSB and run a driver installer.
 
 .DESCRIPTION
-    This PowerShell script installs a USB device driver using WinUSB and then runs a driver installer. It also deletes temporary files after the installation.
-
-.PARAMETER installPath
-    The path to the installation directory where required files are located.
+    This PowerShell script downloads and installs a USB device driver using WinUSB and then runs a driver installer. It also deletes temporary files after the installation.
 
 .NOTES
     File Name      : Install-USBDeviceDriver.ps1
     Prerequisite   : PowerShell 5.0 or later
 
 .EXAMPLE
-    .\Install-USBDeviceDriver.ps1 -installPath "C:\Path\To\Installation"
+    .\Install-USBDeviceDriver.ps1 
 
-    This example runs the script to install a USB device driver located in the specified installation path.
+    This example downloads and runs the script to install a USB device driver .
 
 #>
-param(
-    [string]$installPath= (Split-Path $PSScriptRoot -Parent)    
-)
+
+
+$installPath = "$env:LOCALAPPDATA"
+Write-Verbose "installPath = $installPath"
 # Download win_usb installer
 
-$repoUrl = "https://api.github.com/repos/Sensing-Dev/${installerName}/releases/latest"
+$repoUrl = "https://api.github.com/repos/Sensing-Dev/sensing-dev-installer/releases/latest"
 $response = Invoke-RestMethod -Uri $repoUrl
 $version = $response.tag_name
+$version
 Write-Verbose "Latest version: $version" 
 
 if ($version -match 'v(\d+\.\d+\.\d+)(-\w+)?') {
@@ -35,7 +34,9 @@ if ($version -match 'v(\d+\.\d+\.\d+)(-\w+)?') {
 }
 $installerName = "winusb"
 
-$zipUrl = "https://github.com/Sensing-Dev/sensing-dev-installer/releases/download/v${versionNum}/${installerName}.zip"
+$Url = "https://github.com/Sensing-Dev/sensing-dev-installer/releases/download/v${versionNum}/${installerName}.zip"
+
+$Url
 
 if ($Url.EndsWith("zip")) {
     # Download ZIP to a temp location
@@ -53,9 +54,8 @@ if ($Url.EndsWith("zip")) {
     # Attempt to extract to the temporary extraction directory
     try {
         [System.IO.Compression.ZipFile]::ExtractToDirectory($tempZipPath, $tempExtractionPath)
-                
-        # Cleanup the temporary extraction directory
-        Remove-Item -Path $tempExtractionPath -Force -Recurse
+        ls $tempExtractionPath               
+        
     }
     catch {
         Write-Error "Extraction failed. Original contents remain unchanged."
@@ -70,11 +70,11 @@ if ($Url.EndsWith("zip")) {
 # Run Winusb installer
 
 Write-Verbose "Start winUsb installer"
-$TempDir = "$tempExtractionPath/winusb_installer/temp"
+$TempDir = "$tempExtractionPath/winusb/temp"
 	
 New-item -Path "$TempDir" -ItemType Directory
 $winUSBOptions = @{
-    FilePath               = "${tempExtractionPath}/winusb_installer/winusb_installer.exe"
+    FilePath               = "${tempExtractionPath}/winusb/winusb_installer.exe"
     ArgumentList           = "054c"
     WorkingDirectory       = "$TempDir"
     Wait                   = $true
@@ -99,11 +99,18 @@ else{
         Wait                   = $true
         Verb                   = "RunAs"  # This attempts to run the process as an administrator
     }
-    Start-Process @pnputilOptions
+    try {
+        Start-Process @pnputilOptions -ErrorAction Stop
+    }
+    catch {
+        Write-Error "An error occurred while running pnputil: $_"
+        # You can choose to handle the error as needed, such as logging or taking corrective action.
+    }
 }
 
 # delete temp files
 
-Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"Remove-Item -Path '$TempDir' -Recurse -Force -Confirm:`$false`""
+Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"Remove-Item -Path '$tempExtractionPath' -Recurse -Force -Confirm:`$false`""
 
 Write-Verbose "End Driver installer"
+
