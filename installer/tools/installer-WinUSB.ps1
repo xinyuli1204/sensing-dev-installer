@@ -62,7 +62,7 @@ if ($Url.EndsWith("zip")) {
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-    $tempExtractionPath = "$installPath\_tempExtraction"
+    $tempExtractionPath = "$installPath\_tempWinUSBExtraction"
     # Create the temporary extraction directory if it doesn't exist
     if (-not (Test-Path $tempExtractionPath)) {
         New-Item -Path $tempExtractionPath -ItemType Directory
@@ -81,28 +81,29 @@ if ($Url.EndsWith("zip")) {
      Remove-Item -Path $tempZipPath -Force
 }
 
+if (Test-Path $tempExtractionPath) {    
 
-# Run Winusb installer
-Write-Host "This may take a few minutes. Starting the installation..."
+    # Run Winusb installer
+    Write-Host "This may take a few minutes. Starting the installation..."
 
-Write-Verbose "Start winUsb installer"
-$TempDir = "$tempExtractionPath/winusb/temp"
-	
-New-item -Path "$TempDir" -ItemType Directory
-$winUSBOptions = @{
-    FilePath               = "${tempExtractionPath}/winusb/winusb_installer.exe"
-    ArgumentList           = "054c"
-    WorkingDirectory       = "$TempDir"
-    Wait                   = $true
-    Verb                   = "RunAs"  # This attempts to run the process as an administrator
+    Write-Verbose "Start winUsb installer"
+    $TempDir = "$tempExtractionPath/winusb/temp"
+        
+    New-item -Path "$TempDir" -ItemType Directory
+    $winUSBOptions = @{
+        FilePath               = "${tempExtractionPath}/winusb/winusb_installer.exe"
+        ArgumentList           = "054c"
+        WorkingDirectory       = "$TempDir"
+        Wait                   = $true
+        Verb                   = "RunAs"  # This attempts to run the process as an administrator
+    }
+    # Start winusb_installer.exe process with progress bar
+    Start-ProcessWithProgressBar @winUSBOptions "Executing winUsb installer..."
+
+    Write-Verbose "End winUsb installer"
 }
-# Start winusb_installer.exe process with progress bar
-Start-ProcessWithProgressBar @winUSBOptions "Executing winUsb installer..."
-
-Write-Verbose "End winUsb installer"
 
 # Run Driver installer
-
 Write-Verbose "Start Driver installer"
 
 $infPath = "$TempDir/target.inf"
