@@ -90,6 +90,7 @@ if ($Url.EndsWith("zip")) {
     # Attempt to extract to the temporary extraction directory
     try {
         Expand-Archive -Path $tempZipPath -DestinationPath $tempExtractionPath
+        Start-Sleep -Seconds 5
         Get-ChildItem -Path $tempExtractionPath
         # If extraction is successful, replace the old contents with the new
         $installPath = "$installPath\$installationName"
