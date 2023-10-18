@@ -37,7 +37,9 @@ jobs:
 
       - name: Run CMake
         working-directory: installer/build
-        run: cmake -G "Visual Studio 17 2022" -A x64 ../
+        run: |
+         where python
+         cmake -G "Visual Studio 17 2022" -A x64 ../
 
       - name: Build with CMake
         working-directory: installer/build
