@@ -49,7 +49,7 @@ if ( -not $installPath) {
 }
 Write-Verbose "installPath = $installPath"
 
-$installerName = "sensing-dev-installer"
+$installerName = "sensing-dev"
 
 if (-not $Url ) {
     if (-not $version ) {
@@ -88,7 +88,7 @@ if ($Url.EndsWith("zip")) {
     }
     # Attempt to extract to the temporary extraction directory
     try {
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($tempZipPath, $tempExtractionPath)
+        Expand-Archive -Path $tempZipPath -DestinationPath $tempExtractionPath
         Get-ChildItem -Path $tempExtractionPath
         # If extraction is successful, replace the old contents with the new
         $installPath = "$installPath\$installerName"
