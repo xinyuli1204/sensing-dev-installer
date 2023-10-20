@@ -49,8 +49,7 @@ if ( -not $installPath) {
 }
 Write-Verbose "installPath = $installPath"
 
-$installerName = "sensing-dev-installer"
-$installationName = "sensing-dev"
+$installerName = "sensing-dev"
 
 if (-not $Url ) {
     if (-not $version ) {
@@ -89,11 +88,11 @@ if ($Url.EndsWith("zip")) {
     }
     # Attempt to extract to the temporary extraction directory
     try {
-        Expand-Archive -Path $tempZipPath -DestinationPath $tempExtractionPath
+        Expand-Archive -Path $tempZipPath -DestinationPath $tempExtractionPath -Wait
         Start-Sleep -Seconds 5
         Get-ChildItem -Path $tempExtractionPath
         # If extraction is successful, replace the old contents with the new
-        $installPath = "$installPath\$installationName"
+        $installPath = "$installPath\$installerName"
         if (Test-Path -Path ${installPath}){
             Get-ChildItem -Path $installPath -Recurse | Remove-Item -Force -Recurse
         }
@@ -114,7 +113,7 @@ if ($Url.EndsWith("zip")) {
      Remove-Item -Path $tempZipPath -Force
 }
 elseif ($Url.EndsWith("msi")) {
-    $installPath = "$installPath\$installationName"
+    $installPath = "$installPath\$installerName"
 
     # Download MSI to a temp location
     $tempMsiPath = "${env:TEMP}\${installerName}.msi"
