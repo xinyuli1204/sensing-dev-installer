@@ -85,24 +85,26 @@ install(DIRECTORY ${PYGOBJECT_DIR}/include/ DESTINATION include)
 install(DIRECTORY ${PYGOBJECT_DIR}/bin/ DESTINATION bin)
 install(DIRECTORY ${PYGOBJECT_DIR}/share/ DESTINATION share)
 install(DIRECTORY ${PYGOBJECT_DIR}/lib/ DESTINATION lib)
+
 # install(DIRECTORY ${PYGOBJECT_DIR}/license/ DESTINATION license)
+file(GLOB_RECURSE license_files ${PYGOBJECT_DIR}/license/COPYING)
 
-
-
-file(GLOB_RECURSE license_files ${PYGOBJECT_DIR}/license/COPYING )
 # installer\external\pygobject\pygobject-0.3.1-win64\license\LICENSE
 message(VERBOSE "Liscence file found: ${license_files}")
 
-set(THIRPARTY_NOTICE_FILE "${CMAKE_BINARY_DIR}/license/thirdparty_notice.txt")
+if(EXISTS ${THIRPARTY_NOTICE_FILE})
+    # Copy and concatenate license files
+    file(APPEND ${THIRPARTY_NOTICE_FILE} "${PYGOBJECT_NAME}\n--------\n")
 
-# Copy and concatenate license files
-file(WRITE ${THIRPARTY_NOTICE_FILE} "${PYGOBJECT_NAME}\n--------\n")
+    foreach(license ${license_files})
+        message(STATUS "Copying ${license} to ${THIRPARTY_NOTICE_FILE}")
+        file(READ ${license} license_content)
+        file(APPEND ${THIRPARTY_NOTICE_FILE} "${license_content}\n--------\n")
+    endforeach()
+else()
+    message(FATAL_ERROR "Source file '${THIRPARTY_NOTICE_FILE}' does not exist.")
+endif()
 
-foreach(license ${license_files})
-    message (VERBOSE "Copying ${license} to ${THIRPARTY_NOTICE_FILE}")
-    file(READ ${license} license_content)
-    file(APPEND ${THIRPARTY_NOTICE_FILE} "${license_content}\n--------\n")
-endforeach()
 
 install(FILES ${THIRPARTY_NOTICE_FILE}
             DESTINATION license

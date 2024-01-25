@@ -84,21 +84,25 @@ elseif(OPENCV_ACTION STREQUAL "download")
     file(GLOB_RECURSE license_files
         ${OPENCV_DIR}/build/LICENSE
         ${OPENCV_DIR}/build/LICENSE_FFMPEG.txt
-        ${OPENCV_DIR}/build/etc/licenses/*)
+        ${OPENCV_DIR}/build/etc/licenses/*LICENSE* 
+        ${OPENCV_DIR}/build/etc/licenses/*license* 
+        )
 
     # installer\external\opencv\build\etc\licenses
     message(VERBOSE "OpenCV Liscence file found: ${license_files}")
 
-    set(THIRPARTY_NOTICE_FILE "${CMAKE_BINARY_DIR}/license/thirdparty_notice.txt")
+    if(EXISTS ${THIRPARTY_NOTICE_FILE})
+        # Copy and concatenate license files
+        file(APPEND ${THIRPARTY_NOTICE_FILE} "${OPENCV_NAME}\n--------\n")
 
-    # Copy and concatenate license files
-    file(WRITE ${THIRPARTY_NOTICE_FILE} "${OPENCV_NAME}\n--------\n")
-
-    foreach(license ${license_files})
-        message(VERBOSE "Copying ${license} to ${THIRPARTY_NOTICE_FILE}")
-        file(READ ${license} license_content)
-        file(APPEND ${THIRPARTY_NOTICE_FILE} "${license_content}\n--------\n")
-    endforeach()
+        foreach(license ${license_files})
+            message(STATUS "Copying ${license} to ${THIRPARTY_NOTICE_FILE}")
+            file(READ ${license} license_content)
+            file(APPEND ${THIRPARTY_NOTICE_FILE} "${license_content}\n--------\n")
+        endforeach()
+    else()
+        message(FATAL_ERROR "Source file '${THIRPARTY_NOTICE_FILE}' does not exist.")
+    endif()
 
 elseif(OPENCV_ACTION STREQUAL "use_existing")
     message(STATUS "Use local Opencv ")

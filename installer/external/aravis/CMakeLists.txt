@@ -167,18 +167,20 @@ install(DIRECTORY ${ARAVIS_DEP_DIR}/include/ DESTINATION include)
 install(DIRECTORY ${ARAVIS_DEP_DIR}/bin/ DESTINATION bin)
 install(DIRECTORY ${ARAVIS_DEP_DIR}/lib/ DESTINATION lib)
 
-file(GLOB_RECURSE license_files ${ARAVIS_DIR}/license/COPYING )
+file(GLOB_RECURSE license_files ${ARAVIS_DIR}/license/COPYING ${ARAVIS_DEP_DIR}/license/*.txt)
 message(VERBOSE "ARAVIS Liscence file found: ${license_files}")
 
-set(THIRPARTY_NOTICE_FILE "${CMAKE_BINARY_DIR}/license/thirdparty_notice.txt")
+if(EXISTS ${THIRPARTY_NOTICE_FILE})
+    # Copy and concatenate license files
+    file(APPEND ${THIRPARTY_NOTICE_FILE} "${ARAVIS_NAME}\n--------\n")
 
-# Copy and concatenate license files
-file(WRITE ${THIRPARTY_NOTICE_FILE} "${ARAVIS_NAME}\n--------\n")
-
-foreach(license ${license_files})
-    message (VERBOSE "Copying ${license} to ${THIRPARTY_NOTICE_FILE}")
-    file(READ ${license} license_content)
-    file(APPEND ${THIRPARTY_NOTICE_FILE} "${license_content}\n--------\n")
-endforeach()
+    foreach(license ${license_files})
+        message(STATUS "Copying ${license} to ${THIRPARTY_NOTICE_FILE}")
+        file(READ ${license} license_content)
+        file(APPEND ${THIRPARTY_NOTICE_FILE} "${license_content}\n--------\n")
+    endforeach()
+else()
+    message(FATAL_ERROR "Source file '${THIRPARTY_NOTICE_FILE}' does not exist.")
+endif()
 
     
