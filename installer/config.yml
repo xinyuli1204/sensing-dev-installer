@@ -47,3 +47,16 @@ libraries:
     pkg_url: "https://github.com/opencv/opencv/releases/download/4.5.5/opencv-4.5.5-vc14_vc15.exe"
     pkg_sha: "cac31973cd1c59bfe9dc926acbde815553d23662ea355e0414b5e50d8f8aa5a8"
     version: "4.5.5"
+
+  gendc_separator:
+    name: gendc_separator
+    src_path: gendc_separator
+    install_path: install/gendc_separator
+    # action: download # can be 'download'
+    pkg_url: "https://github.com/Sensing-Dev/cdci-test/releases/download/v24.01.00-gendc-test-1/gendc_separator.zip"
+    # pkg_url: "https://github.com/Sensing-Dev/cdci-test/releases/download/v24.01.00/gendc_separator_v24.01.00_win64.zip"
+    pkg_sha: "4c229f221430a9819e61e1913bdaca9e4ed405f39e6366f38e20d24f1200170e"
+    git_repo: "https://github.com/Sensing-Dev/GenDC.git"
+    version: "v24.01.00-gendc-test-1"
+
+
