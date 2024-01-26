@@ -93,14 +93,19 @@ install(DIRECTORY ${ION_KIT_DIR}/include/ DESTINATION include)
 install(DIRECTORY ${ION_KIT_DIR}/lib/ DESTINATION lib)
 
 # Copy and concatenate license files
-file(GLOB_RECURSE license_files ${ION_KIT_DIR}/license/LICENSE ${ION_KIT_DIR}/license/*thirdparty_notice.txt*)
-# installer\external\ion-kit\ion-kit-0.3.1-win64\license\LICENSE
-message(VERBOSE  "Ion-kit Liscence file found: ${license_files}")
-set(THIRPARTY_NOTICE_FILE "${CMAKE_BINARY_DIR}/license/thirdparty_notice.txt")
-file(WRITE ${THIRPARTY_NOTICE_FILE} "${ION_KIT_NAME}\n--------\n")
-foreach(license ${license_files})
-    message (VERBOSE "Copying ${license} to ${THIRPARTY_NOTICE_FILE}")
-    file(READ ${license} license_content)
-    file(APPEND ${THIRPARTY_NOTICE_FILE} "${license_content}\n--------\n")
-endforeach()
+file(GLOB_RECURSE license_files ${ION_KIT_DIR}/license/LICENSE ${ION_KIT_DIR}/license/thirdparty_notice.txt)
 
+# installer\external\ion-kit\ion-kit-0.3.1-win64\license\LICENSE
+message(VERBOSE "Ion-kit Liscence file found: ${license_files}")
+
+if(EXISTS ${THIRPARTY_NOTICE_FILE})
+    file(APPEND ${THIRPARTY_NOTICE_FILE} "${ION_KIT_NAME}\n--------\n")
+
+    foreach(license ${license_files})
+        message(STATUS "Copying ${license} to ${THIRPARTY_NOTICE_FILE}")
+        file(READ ${license} license_content)
+        file(APPEND ${THIRPARTY_NOTICE_FILE} "${license_content}\n--------\n")
+    endforeach()
+else()
+    message(FATAL_ERROR "Source file '${THIRPARTY_NOTICE_FILE}' does not exist.")
+endif()

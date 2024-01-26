@@ -5,7 +5,7 @@ libraries:
     install_path: install/aravis
     action: download # can be 'download', 'build', or 'use_existing'
     pkg_url: "https://github.com/Sensing-Dev/aravis/releases/download/internal-0.8.30/aravis-internal-0.8.30-win64.zip"
-    pkg_sha: "a328e603e8bef843f3824f0d04e5d6b754ee9a82d4c388044d48ae4cd35f89a8"
+    pkg_sha: "1f0ef68a9d33f9bb0c53361131bf73d67ffd3ebb4140758d914489884da93b97"
     git_repo: "https://github.com/Sensing-Dev/aravis.git"
     version: "0.8.30-internal"
 
@@ -15,7 +15,7 @@ libraries:
     install_path: install/aravis_dep
     action: download # can be 'download', 'build', or 'use_existing'
     pkg_url: "https://github.com/Sensing-Dev/aravis/releases/download/internal-0.8.30/Aravis-0.8.30-internal-dependencies.zip"
-    pkg_sha: "f1f93b6c8ee2dd881e7c8950b06562159fb55f615d7ae2de165d861194e9b6c3"
+    pkg_sha: "79a3a94c56d65fc63312cbb258f48be542993543fb74a33aaa8ab7ebc5c76354"
     git_repo: "https://github.com/conan-io/conan-center-index.git" # use recipe here for appropriate version
     version: "0.8.30-internal"
 
@@ -34,10 +34,10 @@ libraries:
     src_path: ion-kit
     install_path: install/ion-kit
     action: download # can be 'download', 'build', or 'use_existing'
-    pkg_url: "https://github.com/fixstars/ion-kit/releases/download/v1.0.0/ion-kit-1.0.0-x86-64-windows.zip"
-    pkg_sha: "e5e32c7340777ad9dbeea52daa99f569db597b7ab0f3a10f932f04de28df5ec7"
+    pkg_url: "https://github.com/fixstars/ion-kit/releases/download/v1.2.0/ion-kit-1.2.0-x86-64-windows.zip"
+    pkg_sha: "bfd01e29193ee2cd490e35923709fb05be4a06104148ee5b198a86455d5e348d"
     git_repo: "https://github.com/fixstars/ion-kit.git"
-    version: "v1.0.0"
+    version: "v1.2.0"
 
   opencv:
     name: opencv
@@ -47,3 +47,15 @@ libraries:
     pkg_url: "https://github.com/opencv/opencv/releases/download/4.5.5/opencv-4.5.5-vc14_vc15.exe"
     pkg_sha: "cac31973cd1c59bfe9dc926acbde815553d23662ea355e0414b5e50d8f8aa5a8"
     version: "4.5.5"
+
+  gendc_separator:
+    name: gendc_separator
+    src_path: gendc_separator
+    install_path: install/gendc_separator
+    # action: download # can be 'download'
+    pkg_url: "https://github.com/Sensing-Dev/GenDC/releases/download/v0.1.1/gendc_separator_v0.1.1_win64.zip"
+    pkg_sha: "bf696a59fc12d852aa3660dce3dd6fada89fee505f60874ee7dccebc4fabde5a"
+    git_repo: "https://github.com/Sensing-Dev/GenDC.git"
+    version: "v0.1.1"
+
+
