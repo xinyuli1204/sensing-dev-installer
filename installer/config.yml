@@ -53,7 +53,8 @@ libraries:
     src_path: gendc_separator
     install_path: install/gendc_separator
     # action: download # can be 'download'
-    pkg_url: "https://github.com/Sensing-Dev/cdci-test/releases/download/v24.01.00-gendc-test-1/gendc_separator.zip"
+    pkg_url: "https://github.com/Sensing-Dev/aravis/releases/download/internal-0.8.30/gendc_separator.zip"
+    # pkg_url: "https://github.com/Sensing-Dev/cdci-test/releases/download/v24.01.00-gendc-test-1/gendc-separator.zip"
     # pkg_url: "https://github.com/Sensing-Dev/cdci-test/releases/download/v24.01.00/gendc_separator_v24.01.00_win64.zip"
     pkg_sha: "4c229f221430a9819e61e1913bdaca9e4ed405f39e6366f38e20d24f1200170e"
     git_repo: "https://github.com/Sensing-Dev/GenDC.git"
