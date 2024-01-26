@@ -87,5 +87,5 @@ target_include_directories(gendc_seperator INTERFACE ${GENDC_SEPERATOR_DIR})
 
 # Install gendc_seperator library, binaries, includes, and shared files
 # install(DIRECTORY ${CMAKE_SOURCE_DIR}/external/gendc_seperator/${GENDC_SEPERATOR_OS_FILE}/ DESTINATION install)
-install(DIRECTORY ${GENDC_SEPERATOR_DIR}/ DESTINATION include)
+install(DIRECTORY ${GENDC_SEPERATOR_DIR}/ DESTINATION include/${GENDC_SEPERATOR_NAME})
 
