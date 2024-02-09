@@ -34,10 +34,10 @@ libraries:
     src_path: ion-kit
     install_path: install/ion-kit
     action: download # can be 'download', 'build', or 'use_existing'
-    pkg_url: "https://github.com/fixstars/ion-kit/releases/download/v1.4.0/ion-kit-1.4.0-x86-64-windows.zip"
-    pkg_sha: "981c031f215d45ef260e7422d570dd8a25c9a7c7891b3f30e93f46bb5b920e5a"
+    pkg_url: "https://github.com/fixstars/ion-kit/releases/download/v1.5.1/ion-kit-1.5.1-x86-64-windows.zip"
+    pkg_sha: "29bfd1e3e260fb4658455e27f69f955b5ab69ad2edd919b53c8714f72f8c134d"
     git_repo: "https://github.com/fixstars/ion-kit.git"
-    version: "v1.4.0"
+    version: "v1.5.1"
 
   opencv:
     name: opencv
