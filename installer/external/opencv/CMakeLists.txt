@@ -75,7 +75,7 @@ elseif(OPENCV_ACTION STREQUAL "download")
     # Install opencv library, binaries, includes, and shared files
     # Copy everything from v24.04.00
     message("OPENCV_DIR = ${OPENCV_DIR}")
-    install(DIRECTORY ${OPENCV_DIR} DESTINATION .)
+    install(DIRECTORY ${OPENCV_DIR} DESTINATION opencv)
 
     # # Update thirdparty_notice.txt
     # Keep copying third party notice after copying everything 
