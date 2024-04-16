@@ -73,14 +73,12 @@ elseif(OPENCV_ACTION STREQUAL "download")
     target_include_directories(opencv INTERFACE ${OPENCV_DIR}/include)
 
     # Install opencv library, binaries, includes, and shared files
-    # install(DIRECTORY ${CMAKE_SOURCE_DIR}/external/opencv/${OPENCV_OS_FILE}/ DESTINATION install)
+    # Copy everything from v24.04.00
     message("OPENCV_DIR = ${OPENCV_DIR}")
-    install(DIRECTORY ${OPENCV_DIR}/build/bin/ DESTINATION bin)
-    install(DIRECTORY ${OPENCV_DIR}/build/x64/vc15/bin/ DESTINATION bin)
-    install(DIRECTORY ${OPENCV_DIR}/build/x64/vc15/lib/ DESTINATION lib)
-    install(DIRECTORY ${OPENCV_DIR}/build/include/ DESTINATION include)
+    install(DIRECTORY ${OPENCV_DIR}/build DESTINATION opencv/build)
 
     # # Update thirdparty_notice.txt
+    # Keep copying third party notice after copying everything 
     file(GLOB_RECURSE license_files
         ${OPENCV_DIR}/build/LICENSE
         ${OPENCV_DIR}/build/LICENSE_FFMPEG.txt
