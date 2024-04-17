@@ -259,7 +259,7 @@ function Set-InstallerEnvironment(){
     $ps1ScriptPath = Join-Path -Path $installPath\$installerName -ChildPath $relativeScriptPath
     Write-Host "ps1ScriptPath = $ps1ScriptPath"
     if (Test-Path -Path $ps1ScriptPath -PathType Leaf) {
-      $outputEnvScript = & $ps1ScriptPath -InstallOpenCV
+      $outputEnvScript = & $ps1ScriptPath -InstallOpenCV:$InstallOpenCV
       Write-Host $outputEnvScript
     }
     else {
