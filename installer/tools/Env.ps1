@@ -42,20 +42,20 @@ $currentPythonPath = [Environment]::GetEnvironmentVariable("PYTHONPATH", "User")
 if (-not $currentPath.Contains($newPath)) {
     $currentPath += ";$newPath" 
     [Environment]::SetEnvironmentVariable("Path", $currentPath, "User")
-    Write-Host "$newPath is added to PATH"
+    Write-Output "$newPath is added to PATH"
 }
 Write-Verbose "Updated PATH: $currentPath"
 
 # If OpenCV is installed under sensing-dev, add <sensing-dev>/opencv/build/x64/vc*/bin to PATH
 if ($InstallOpenCV){
-    $opencvBinPath = Get-ChildItem -Path "$installPath/opencv/build/x64/vc*/bin" -Directory |    -ExpandProperty FullName -Last 1
+    $opencvBinPath = (Get-ChildItem -Path "$installPath/opencv/build/x64/vc*/bin" -Directory)[-1]
     if ($null -eq $opencvBinPath) {
         Write-Output "No $installPath/opencv/build/x64/vc*/bin found under Sensing-Dev; skip adding to PATH"
     } else {
         if (-not $currentPath.Contains($opencvBinPath)) {
             $currentPath += ";$opencvBinPath"
             [Environment]::SetEnvironmentVariable("Path", $currentPath, "User")
-            Write-Host "$opencvBinPath is added to PATH"
+            Write-Output "$opencvBinPath is added to PATH"
         }
         Write-Verbose "Updated PATH: $currentPath"
     }
