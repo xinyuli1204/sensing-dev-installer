@@ -1,0 +1,52 @@
+name: Sensing dev installer script Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"  # vYY.MM.Patch example v23.08.00 etc.
+
+jobs:
+  release-installer-script:
+    runs-on: ubuntu-latest
+    env: 
+      LD_LIBRARY_PATH: /opt/sensing-dev/lib:/opt/sensing-dev/lib/x86_64-linux-gnu
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
+        with:
+          submodules: recursive
+
+      - name: Make the script files executable
+        run: |
+          chmod +x ${GITHUB_WORKSPACE}/installer/tools/setup.sh
+      
+      - name: Run the script to install
+        run: |
+          sudo bash ${GITHUB_WORKSPACE}/installer/tools/setup.sh
+
+      - name: Check if /opt/sensing-dev exists
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: /opt/sensing-dev
+          fail: true
+
+      - name: Test Environment variable for Aravis
+        run: |
+          /opt/sensing-dev/bin/arv-tool-0.8
+
+      # Todo: adding the test to check OpenCV, ion-kit, Aravis, GOjbect
+      - name: Release      
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            installer/tools/setup.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  
+
+
+
+
