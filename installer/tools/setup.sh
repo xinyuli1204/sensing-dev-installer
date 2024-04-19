@@ -124,7 +124,6 @@ echo
 echo "**********"
 echo "Install GenDCSeparator=${GENDC_SEPARATOR_VERSION/v/''}"
 echo "**********"
-curl -L https://github.com/Sensing-Dev/GenDC/releases/download/${GENDC_SEPARATOR_VERSION}/gendc_separator_${GENDC_SEPARATOR_VERSION}_win64.zip | unzip -d $INSTALL_PATH/include
+curl -L https://github.com/Sensing-Dev/GenDC/releases/download/${GENDC_SEPARATOR_VERSION}/gendc_separator_${GENDC_SEPARATOR_VERSION}_win64.zip -o gendc_separator.zip && unzip -o gendc_separator.zip -d $INSTALL_PATH/include && rm gendc_separator.zip
 echo
-
 echo "Successfully Finished."
