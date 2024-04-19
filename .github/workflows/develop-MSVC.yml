@@ -1,4 +1,4 @@
-name: Sensing dev installer Build, Test
+name: MSVC Sensing dev installer Build, Test
 
 on:
   push:

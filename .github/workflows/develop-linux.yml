@@ -1,4 +1,4 @@
-name: Sensing dev installer Build, Test
+name: Linux Sensing dev installer Test
 
 on:
   pull_request:
