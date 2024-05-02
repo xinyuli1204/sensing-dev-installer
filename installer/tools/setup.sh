@@ -63,6 +63,9 @@ get_sensing-dev_latest_release() {
 if [ -z "$Version" ]; then
   Repository="Sensing-Dev/sensing-dev-installer"
   Version=`get_sensing-dev_latest_release $Repository`
+  if [[ "$Version" == "v24.01.04" ]]; then
+    Version="v24.04.00"
+  fi
 fi
 ION_KIT_VERSION=${ion_kit_config["$Version"]}
 
