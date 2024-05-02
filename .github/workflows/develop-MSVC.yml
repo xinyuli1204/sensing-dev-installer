@@ -13,7 +13,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
       - name: Setup Python
         uses: actions/setup-python@v4.7.1
@@ -59,7 +59,7 @@ jobs:
         run: cpack -G "WIX"
 
       - name: Upload artifacts MSI
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: sensing-dev-installer-msi
           path: |
@@ -69,41 +69,76 @@ jobs:
         working-directory: installer/build
         run: cpack -G "ZIP"
 
-      - name: Create package without opencv
-        working-directory: installer/build
-        run:  cmake -G "Visual Studio 17 2022" -A x64 ../ -DOPENCV_ACTION="use_existing"
+      # - name: Create package without opencv
+      #   working-directory: installer/build
+      #   run:  cmake -G "Visual Studio 17 2022" -A x64 ../ -DOPENCV_ACTION="use_existing"
 
-      - name: Create package msi
-        working-directory: installer/build
-        run: cpack -G "WIX"
+      # - name: Create package msi
+      #   working-directory: installer/build
+      #   run: cpack -G "WIX"
 
-      - name: Create package zip
-        working-directory: installer/build
-        run: cpack -G "ZIP"
-
+      # - name: Create package zip
+      #   working-directory: installer/build
+      #   run: cpack -G "ZIP"
+      
       - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.1.3
+        uses: actions/upload-artifact@v4
         with:
           name: sensing-dev-installer-zip
           path: |
             installer/build/*.zip
-
-      
-            
   test:
-    needs: build
     runs-on: windows-latest
-
+    permissions:
+      id-token: write
+    needs: build
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
+        with:
+          submodules: recursive
 
-      - name: Run tests
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: sensing-dev-installer-zip
+          merge-multiple: true
+        
+      - name: Unzip
+        run: | 
+          mkdir ${HOME}/sensing-dev
+          unzip sensing-dev*.zip
+          mv sensing-dev*/* ${HOME}/sensing-dev
+          ls ${HOME}/sensing-dev
+
+      - name: Test arvis
         run: |
-          echo "TODO : Running tests..."
-
+          $BINPATH="${HOME}/sensing-dev/bin"
+          $env:PATH="$env:PATH;$BINPATH"
+          $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
+          cd installer/testcases/cpp/aravis_test  && cmake -G "Visual Studio 17 2022" -A x64 ./
+          cmake --build . --config Release 
+          cd Release && ./aravis_test
+          echo "aravis test passed"
   
-
-
-
-
+      - name: Test ion-kit
+        run: |
+          $BINPATH="${HOME}/sensing-dev/bin"
+          $env:PATH="$env:PATH;$BINPATH"
+          $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
+          cd installer/testcases/cpp/ionkit_test && cmake -G "Visual Studio 17 2022" -A x64 ./
+          cmake --build . --config Release 
+          cd Release && ./ionkit_test
+          echo "ion-kit test passed"
+  
+      - name: Test opencv
+        run: |
+          $BINPATH="${HOME}/sensing-dev/bin"
+          $OPENCVBIN="${HOME}/sensing-dev/opencv/build/x64/vc15/bin"
+          $env:PATH="$env:PATH;$BINPATH"
+          $env:PATH="$env:PATH;$OPENCVBIN"
+          $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
+          cd installer/testcases/cpp/opencv_test  && cmake -G "Visual Studio 17 2022" -A x64 ./
+          cmake --build . --config Release 
+          cd Release && ./opencv_test
+          echo "opencv test passed"

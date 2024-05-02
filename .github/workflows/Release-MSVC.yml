@@ -5,104 +5,105 @@ on:
     tags:
       - "v*.*.*"  # vYY.MM.Patch example v23.08.00 etc.
 
+  
 jobs:
+
   release:
-    runs-on: windows-latest
+      runs-on: windows-latest
+      
+      steps:
+        - name: Setup Python
+          uses: actions/setup-python@v4.7.1
+          with:
+           python-version: "3.11.4"
+  
+        - name: Install Conan and PyYAML via pip
+          run: |
+           python -m pip install conan
+           python -m pip install PyYAML
+  
+        - name: Disable Perl (remove from PATH)
+          run: choco uninstall strawberryperl -n
+  
+        - name: Install WiX Toolset
+          run: choco install wixtoolset -y
+  
+        - name: Checkout repository
+          uses: actions/checkout@v4.1.1
+          with:
+            submodules: recursive
+  
+        - name: Create and enter build directory
+          run: |
+            cd installer
+            mkdir build
+            cd build
+  
+        - name: Run CMake
+          working-directory: installer/build
+          run: cmake -G "Visual Studio 17 2022" -A x64 ../
+  
+        - name: Build
+          working-directory: installer/build
+          run: cmake --build . --config Release 
+  
+        - name: Generate liscence files
+          working-directory: installer/build
+          run: cmake -G "Visual Studio 17 2022" -A x64 ../ 
+  
+        - name: Create package msi
+          working-directory: installer/build
+          run: cpack -G "WIX"
+  
+        - name: Create package zip
+          working-directory: installer/build
+          run: cpack -G "ZIP"
+  
+        - name: Create package without opencv
+          working-directory: installer/build
+          run:  cmake -G "Visual Studio 17 2022" -A x64 ../ -DOPENCV_ACTION="use_existing"
+  
+        - name: Create package msi
+          working-directory: installer/build
+          run: cpack -G "WIX"
+  
+        - name: Create package zip
+          working-directory: installer/build
+          run: cpack -G "ZIP"
+  
+        - name: Release      
+          uses: softprops/action-gh-release@v1
+          with:
+            files: |
+              installer/tools/installer*.ps1
+              installer/build/*.msi
+              installer/build/*.zip
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
     
-    steps:
-      - name: Setup Python
-        uses: actions/setup-python@v4.7.1
-        with:
-         python-version: "3.11.4"
-
-      - name: Install Conan and PyYAML via pip
-        run: |
-         python -m pip install conan
-         python -m pip install PyYAML
-
-      - name: Disable Perl (remove from PATH)
-        run: choco uninstall strawberryperl -n
-
-      - name: Install WiX Toolset
-        run: choco install wixtoolset -y
-
-      - name: Checkout repository
-        uses: actions/checkout@v4.1.1
-        with:
-          submodules: recursive
-
-      - name: Create and enter build directory
-        run: |
-          cd installer
-          mkdir build
-          cd build
-
-      - name: Run CMake
-        working-directory: installer/build
-        run: cmake -G "Visual Studio 17 2022" -A x64 ../
-
-      - name: Build
-        working-directory: installer/build
-        run: cmake --build . --config Release 
-
-      - name: Generate liscence files
-        working-directory: installer/build
-        run: cmake -G "Visual Studio 17 2022" -A x64 ../ 
-
-      - name: Create package msi
-        working-directory: installer/build
-        run: cpack -G "WIX"
-
-      - name: Create package zip
-        working-directory: installer/build
-        run: cpack -G "ZIP"
-
-      - name: Create package without opencv
-        working-directory: installer/build
-        run:  cmake -G "Visual Studio 17 2022" -A x64 ../ -DOPENCV_ACTION="use_existing"
-
-      - name: Create package msi
-        working-directory: installer/build
-        run: cpack -G "WIX"
-
-      - name: Create package zip
-        working-directory: installer/build
-        run: cpack -G "ZIP"
-
-      - name: Release      
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            installer/tools/installer*.ps1
-            installer/build/*.msi
-            installer/build/*.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # test:
-  #   needs: release  
-  #   uses:  fixstars-sonali/sensing-dev-installer/.github/workflows/Test-Release.yml@cd-ci/release-test
-  #   with:
-  #     versions: ${{ github.ref_name }}
-  #     options: '["-user $env:USERNAME", "-user $env:USERNAME -InstallOpenCV", "", "-InstallOpenCV"]'
-
   test-installer-script-zip:   
+   
     strategy:
       matrix:
-        options: ["-user $env:USERNAME", "-user $env:USERNAME -InstallOpenCV"] 
-        version: ["v23.11.01", 'current']
+        options: [ "-user $env:USERNAME -InstallOpenCV", "-user $env:USERNAME"] 
+        version: ['current']
         exclude:
           - version: "v23.11.01"
             options: "-user $env:USERNAME -InstallOpenCV"
 
     runs-on: windows-latest
-    needs: release
+    needs: release  
     env:
       INSTALL_PATH: "$env:LOCALAPPDATA"
       SDK_NAME : "sensing-dev"
       VERSION : ${{ matrix.version == 'current' && github.ref_name || matrix.version}}
 
-    steps:     
+    steps:    
+    - name: Checkout repository
+      uses: actions/checkout@v4.1.1
+      with:
+        submodules: recursive
     - name: Create and enter build directory
       run: |
         mkdir build
@@ -119,7 +120,7 @@ jobs:
       run: |          
         Get-Help .\installer.ps1 -full
 
-    - name: Check installations 
+    - name: Check if installation exists
       working-directory: build
       run: |
         try { 
@@ -136,7 +137,7 @@ jobs:
         Write-Host "USERNAME = $env:USERNAME"
         powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 -version ${{ env.VERSION }} ${{ matrix.options }}          
     
-    - name: Test Env instaltion ZIP 
+    - name: Test Env installation ZIP 
       working-directory: build          
       run: |
         $expected_install_path = Join-Path -Path "${{ env.INSTALL_PATH }}" -ChildPath "${{ env.SDK_NAME }}"
@@ -170,7 +171,7 @@ jobs:
         $PYTHONPATH= [Environment]::GetEnvironmentVariable("PYTHONPATH", "User")
         Write-Host PYTHONPATH = $PYTHONPATH
 
-    - name: Test files instaltion ZIP 
+    - name: Test files installation  ZIP 
       working-directory: build          
       run: |
         $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
@@ -195,12 +196,39 @@ jobs:
         tree $env:SENSING_DEV_ROOT/tools /f /a
         echo "::endgroup::"
         
-    - name: Test installation arv-tool
+    - name: Test arvis
       run: |
         $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
-        Write-Host PATH = $PATH        
+        $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User") 
         $env:PATH="$env:PATH;$PATH"
-        & arv-tool-0.8.exe
+        $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT}
+        cd installer/testcases/cpp/aravis_test  && cmake -G "Visual Studio 17 2022" -A x64 ./
+        cmake --build . --config Release 
+        cd Release && ls && ./aravis_test
+        echo "aravis test passed"
+
+    - name: Test ion-kit
+      run: |
+        $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+        $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")    
+        $env:PATH="$env:PATH;$PATH"
+        $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT}
+        cd installer/testcases/cpp/ionkit_test && cmake -G "Visual Studio 17 2022" -A x64 ./
+        cmake --build . --config Release 
+        cd Release && ls && ./ionkit_test
+        echo "ion-kit test passed"
+
+    - name: Test opencv
+      if:  matrix.options == '-user $env:USERNAME -InstallOpenCV'
+      run: |
+        $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+        $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+        $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT} 
+        $env:PATH="$env:PATH;$PATH"
+        cd installer/testcases/cpp/opencv_test  && cmake -G "Visual Studio 17 2022" -A x64 ./
+        cmake --build . --config Release 
+        cd Release && ./opencv_test
+        echo "opencv test passed"
 
     - name: Uninstallation
       working-directory: build
@@ -208,7 +236,10 @@ jobs:
         $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
         $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT}
         Remove-Item "$env:SENSING_DEV_ROOT" -Recurse -Force
+      
 
+  
+        
 
 
 
