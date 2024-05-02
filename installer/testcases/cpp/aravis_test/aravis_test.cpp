@@ -6,6 +6,12 @@
 
 int main(int argc, char *argv[])
 {
-    arv_update_device_list ();
+    try {
+       arv_update_device_list ();
+    }
+    catch(std::exception& e) {
+         std::cout << e.what() << std::endl;
+         return 1;
+    }
     return 0;
 }
