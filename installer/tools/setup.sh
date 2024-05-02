@@ -24,11 +24,6 @@ fi
 unset ion_kit_config
 declare -A ion_kit_config=( # Declare an associative array with default values
     ["v24.04.00"]="v1.8.0"
-    ["v24.01.04"]="v1.6.0"
-    ["v24.01.03"]="v1.5.1"
-    ["v24.01.02"]="v1.4.0"
-    ["v23.11.01"]="v0.3.6"
-    ["v24.01.01"]="v1.0.0"
 )
 
 INSTALL_PATH=/opt/sensing-dev
@@ -41,7 +36,7 @@ while true; do
     -v | --version )
       Version="$2";
       if [[ -z "${ion_kit_config[$Version]+_}" ]]; then
-        echo "Error: Version '$Version' is not found from following versions"
+        echo "Error: Version '$Version' is not found from following versions for Linux"
         for v in "${!ion_kit_config[@]}"; do
           echo $v
         done
@@ -121,7 +116,7 @@ else
 fi
 
 
-GENDC_SEPARATOR_VERSION="v0.1.1"
+GENDC_SEPARATOR_VERSION="v0.2.0"
 
 echo
 echo "**********"
