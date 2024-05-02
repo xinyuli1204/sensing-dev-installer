@@ -8,6 +8,13 @@
 
 int main(int argc, char *argv[])
 {
-    cv::Mat Image(5,5,CV_8UC1);
+    try {
+         cv::Mat Image(5,5,CV_8UC1);
+    }
+    catch(std::exception& e) {
+         std::cout << e.what() << std::endl;
+         return 1;
+    }
     return 0;
+   
 }
