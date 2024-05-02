@@ -9,12 +9,16 @@ set(SENSING_DEV_DIR $ENV{SENSING_DEV_ROOT})
 
 # aravis
 include_directories(${SENSING_DEV_DIR}/include)
+# opencv
+include_directories(${SENSING_DEV_DIR}/opencv/build/include)
 link_directories(${SENSING_DEV_DIR}/bin)
 link_directories(${SENSING_DEV_DIR}/lib)
+
+
 
 set(TEST opencv_test.cpp)
 add_executable(opencv_test ${TEST})
 target_compile_features(opencv_test PUBLIC cxx_std_17)
 
-target_link_libraries(opencv_test PRIVATE opencv_world455.lib)
+target_link_libraries(opencv_test PRIVATE ${SENSING_DEV_DIR}/opencv/build/x64/vc15/lib/opencv_world455.lib)
 # target_link_libraries(opencv_test PRIVATE ${OpenCV_LIBS})
