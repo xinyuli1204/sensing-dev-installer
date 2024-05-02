@@ -59,7 +59,7 @@ jobs:
         run: cpack -G "WIX"
 
       - name: Upload artifacts MSI
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: sensing-dev-installer-msi
           path: |
@@ -145,6 +145,7 @@ jobs:
           
           
         
+
 
 
 
