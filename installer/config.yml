@@ -53,9 +53,9 @@ libraries:
     src_path: gendc_separator
     install_path: install/gendc_separator
     # action: download # can be 'download'
-    pkg_url: "https://github.com/Sensing-Dev/GenDC/releases/download/v0.2.0/gendc_separator_v0.2.0_win64.zip"
-    pkg_sha: "51adeffd0744dc2f37783f3d71a3615cbb8b86485fa8fca60ac9450e325492ec"
+    pkg_url: "https://github.com/Sensing-Dev/GenDC/releases/download/v0.2.1/gendc_separator_v0.2.1_win64.zip"
+    pkg_sha: "9b157dbafa4631f3c41fe968f1fa5d279b192c09dcef849c3f9f0147a33c607f"
     git_repo: "https://github.com/Sensing-Dev/GenDC.git"
-    version: "v0.2.0"
+    version: "v0.2.1"
 
 
