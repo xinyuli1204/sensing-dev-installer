@@ -23,7 +23,7 @@ fi
 
 unset ion_kit_config
 declare -A ion_kit_config=( # Declare an associative array with default values
-    ["v24.04.00"]="v1.8.1"
+    ["v24.05.00"]="v1.8.1"
 )
 
 INSTALL_PATH=/opt/sensing-dev
@@ -64,7 +64,7 @@ if [ -z "$Version" ]; then
   Repository="Sensing-Dev/sensing-dev-installer"
   Version=`get_sensing-dev_latest_release $Repository`
   if [[ "$Version" == "v24.01.04" ]]; then
-    Version="v24.04.00"
+    Version="v24.05.00"
   fi
 fi
 ION_KIT_VERSION=${ion_kit_config["$Version"]}
