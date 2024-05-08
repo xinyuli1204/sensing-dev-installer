@@ -23,7 +23,7 @@ fi
 
 unset ion_kit_config
 declare -A ion_kit_config=( # Declare an associative array with default values
-    ["v24.04.00"]="v1.8.0"
+    ["v24.04.00"]="v1.8.1"
 )
 
 INSTALL_PATH=/opt/sensing-dev
