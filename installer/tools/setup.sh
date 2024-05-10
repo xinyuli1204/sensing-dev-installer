@@ -74,7 +74,7 @@ mkdir -p $INSTALL_PATH
 echo "**********"
 echo "Install Dependencies"
 echo "**********"
-apt-get -y upgrade && apt-get install -y curl gzip git python3-pip glib2.0 libxml2-dev \
+apt-get -y upgrade && apt-get update && apt-get install -y curl gzip git python3-pip glib2.0 libxml2-dev \
     libgirepository1.0-dev libnotify-dev \
     libunwind-dev \
     libgstreamer1.0-dev \
