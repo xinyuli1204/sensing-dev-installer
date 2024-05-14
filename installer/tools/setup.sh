@@ -23,7 +23,7 @@ fi
 
 unset ion_kit_config
 declare -A ion_kit_config=( # Declare an associative array with default values
-    ["v24.05.00"]="v1.8.1"
+    ["v24.05.01"]="v1.8.2"
 )
 
 INSTALL_PATH=/opt/sensing-dev
@@ -64,7 +64,7 @@ if [ -z "$Version" ]; then
   Repository="Sensing-Dev/sensing-dev-installer"
   Version=`get_sensing-dev_latest_release $Repository`
   if [[ "$Version" == "v24.01.04" ]]; then
-    Version="v24.05.00"
+    Version="v24.05.01"
   fi
 fi
 ION_KIT_VERSION=${ion_kit_config["$Version"]}
@@ -74,7 +74,7 @@ mkdir -p $INSTALL_PATH
 echo "**********"
 echo "Install Dependencies"
 echo "**********"
-apt-get -y upgrade && apt-get install -y curl gzip git python3-pip glib2.0 libxml2-dev \
+apt-get -y upgrade && apt-get update && apt-get install -y curl gzip git python3-pip glib2.0 libxml2-dev \
     libgirepository1.0-dev libnotify-dev \
     libunwind-dev \
     libgstreamer1.0-dev \
