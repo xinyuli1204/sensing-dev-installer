@@ -119,7 +119,7 @@ else
 fi
 
 
-GENDC_SEPARATOR_VERSION="v0.2.2"
+GENDC_SEPARATOR_VERSION="v0.2.4"
 
 echo
 echo "**********"
