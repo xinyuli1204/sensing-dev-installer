@@ -23,8 +23,8 @@ fi
 
 unset ion_kit_config
 declare -A ion_kit_config=( # Declare an associative array with default values
-    ["v24.05.01"]="v1.8.2",
-    ["v24.05.02"]="v1.8.2",
+    ["v24.05.01"]="v1.8.2"
+    ["v24.05.02"]="v1.8.2"
     ["v24.05.03"]="v1.8.2"
 )
 
