@@ -20,6 +20,9 @@ The installation path for the Sensing SDK. Default is the sensing-dev-installer 
 .PARAMETER InstallOpenCV
 If set, the script will also install OpenCV. This is not done by default.
 
+.PARAMETER developTest
+Requires this option for non-tagged GitHub Workflow.
+
 .EXAMPLE
 PS C:\> .\installer.ps1 -version 'v24.09.03' -user 'Admin' -Url 'http://example.com'
 
@@ -44,6 +47,7 @@ param(
   [string]$Url,
   [string]$installPath,
   [switch]$InstallOpenCV = $false,
+  [switch]$developTest = $false,
   [string]$LocalInstaller
 )
 
@@ -320,6 +324,13 @@ function Invoke-Script {
     # Check if the URL ends with .zip or .msi and call the respective function
     if ($Url.EndsWith("zip") -or $LocalInstaller.EndsWith("zip")) {      
       Install-ZIP -installPath $installPath  -installerName $installerName -installerPostfixName $installerPostfixName -versionNum $versionNum  
+      
+      if ($versionNum -lt "24.01.05"){
+        Write-Output "version_info.json is not supported in this version. Please update the installer.ps1"
+      }
+      $jsonURL = "${baseUrl}${version}/version_info.json"
+      Invoke-WebRequest -Uri $jsonURL -OutFile "$installPath/version_info.json" -Verbose
+
     }
     elseif ($Url.EndsWith("msi") -or $LocalInstaller.EndsWith("msi") ) {
       Install-MSI -installPath $installPath -installerName $installerName 

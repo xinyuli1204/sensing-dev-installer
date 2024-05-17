@@ -13,7 +13,10 @@ Specifies the version of the Sensing SDK to be installed. Default is 'latest'.
 If set, the script will also install OpenCV. This is not done by default.
 
 .PARAMETER install-path
-The installation path for the Sensing SDK.Default is the /opt/sensing-dev directory'
+The installation path for the Sensing SDK.Default is the /opt/sensing-dev directory
+
+.PARAMETER develop-test
+Requires this option for non-tagged GitHub Workflow.'
 
 set -eo pipefail
 if [ "$EUID" -ne 0 ]
@@ -23,11 +26,17 @@ fi
 
 unset ion_kit_config
 declare -A ion_kit_config=( # Declare an associative array with default values
-    ["v24.05.01"]="v1.8.2"
-    ["v24.05.02"]="v1.8.2"
-    ["v24.05.03"]="v1.8.2"
     ["v24.05.04"]="v1.8.2"
+    ["v24.05.05-test7"]="v1.8.2"
 )
+
+unset gendc_separator_config
+declare -A gendc_separator_config=( # Declare an associative array with default values
+    ["v24.05.04"]="v0.2.6"
+    ["v24.05.05-test7"]="v0.2.6"
+)
+
+EARLIEST_STABLE_SDK="v24.05.04"
 
 INSTALL_PATH=/opt/sensing-dev
 
@@ -49,6 +58,9 @@ while true; do
     --install-path )
       INSTALL_PATH="$2";
       shift; shift ;;
+    --develop-test )
+      DL_VERSION_INFO=true;
+      shift ;;
     -- )
       shift; break ;;
     * )
@@ -56,6 +68,7 @@ while true; do
   esac
 done
 
+# if version is not specified, get the latest #########################################################
 get_sensing-dev_latest_release() {
 
   curl --silent "https://api.github.com/repos/$1/releases/latest" | # Get latest release from GitHub api
@@ -67,10 +80,13 @@ if [ -z "$Version" ]; then
   Repository="Sensing-Dev/sensing-dev-installer"
   Version=`get_sensing-dev_latest_release $Repository`
   if [[ "$Version" == "v24.01.04" ]]; then
-    Version="v24.05.01"
+    Version="$EARLIEST_STABLE_SDK"
   fi
 fi
+#######################################################################################################
+
 ION_KIT_VERSION=${ion_kit_config["$Version"]}
+GENDC_SEPARATOR_VERSION=${gendc_separator_config["$Version"]}
 
 mkdir -p $INSTALL_PATH
 
@@ -121,14 +137,27 @@ else
   curl -L https://github.com/fixstars/ion-kit/releases/download/${ION_KIT_VERSION}/ion-kit-${ION_KIT_VERSION/v/''}-x86-64-linux.tar.gz | tar xz -C  $INSTALL_PATH --strip-components 1
 fi
 
-
-GENDC_SEPARATOR_VERSION="v0.2.6"
-
 echo
 echo "**********"
 echo "Install GenDCSeparator=${GENDC_SEPARATOR_VERSION/v/''}"
 echo "**********"
 curl -L https://github.com/Sensing-Dev/GenDC/releases/download/${GENDC_SEPARATOR_VERSION}/gendc_separator_${GENDC_SEPARATOR_VERSION}_win64.zip -o gendc_separator.zip && unzip -o gendc_separator.zip -d $INSTALL_PATH/include && rm gendc_separator.zip
+
+if [ "$DL_VERSION_INFO" = false ]; then
+  if [[ "$Version" == "v24.05.04" ]]; then
+      echo
+      echo "**********"
+      echo "This version doesn't support version_info.json"
+      echo "**********"
+  else
+      # DL version_info.json
+      echo
+      echo "**********"
+      echo "Download SDK version info... See $INSTALL_PATH/version_info.json for the detail."
+      echo "**********"
+      curl -L https://github.com/Sensing-Dev/sensing-dev-installer/releases/download/${Version}/version_info.json -o $INSTALL_PATH/version_info.json
+  fi
+fi
 
 echo
 echo "Successfully Finished."

@@ -1,9 +1,10 @@
 name: Sensing dev installer script Release
 
 on:
-  push:
-    tags:
-      - "v*.*.*"  # vYY.MM.Patch example v23.08.00 etc.
+  workflow_run:
+    workflows: ["Generate Release version info"]
+    types:
+      - completed
 
 jobs:
   release-installer-script:
