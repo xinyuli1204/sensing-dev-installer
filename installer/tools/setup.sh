@@ -27,13 +27,13 @@ fi
 unset ion_kit_config
 declare -A ion_kit_config=( # Declare an associative array with default values
     ["v24.05.04"]="v1.8.2"
-    ["v24.05.05-test7"]="v1.8.2"
+    ["v24.05.05-test"]="v1.8.2"
 )
 
 unset gendc_separator_config
 declare -A gendc_separator_config=( # Declare an associative array with default values
     ["v24.05.04"]="v0.2.6"
-    ["v24.05.05-test7"]="v0.2.6"
+    ["v24.05.05-test"]="v0.2.6"
 )
 
 EARLIEST_STABLE_SDK="v24.05.04"
