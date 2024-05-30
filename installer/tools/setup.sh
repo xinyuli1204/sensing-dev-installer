@@ -27,13 +27,13 @@ fi
 unset ion_kit_config
 declare -A ion_kit_config=( # Declare an associative array with default values
     ["v24.05.04"]="v1.8.2"
-    ["v24.05.05-test"]="v1.8.2"
+    ["v24.05.05-test9"]="v1.8.2"
 )
 
 unset gendc_separator_config
 declare -A gendc_separator_config=( # Declare an associative array with default values
     ["v24.05.04"]="v0.2.6"
-    ["v24.05.05-test"]="v0.2.6"
+    ["v24.05.05-test9"]="v0.2.6"
 )
 
 EARLIEST_STABLE_SDK="v24.05.04"
@@ -59,7 +59,7 @@ while true; do
       INSTALL_PATH="$2";
       shift; shift ;;
     --develop-test )
-      DL_VERSION_INFO=true;
+      NOT_DL_VERSION_INFO=true;
       shift ;;
     -- )
       shift; break ;;
@@ -143,7 +143,12 @@ echo "Install GenDCSeparator=${GENDC_SEPARATOR_VERSION/v/''}"
 echo "**********"
 curl -L https://github.com/Sensing-Dev/GenDC/releases/download/${GENDC_SEPARATOR_VERSION}/gendc_separator_${GENDC_SEPARATOR_VERSION}_win64.zip -o gendc_separator.zip && unzip -o gendc_separator.zip -d $INSTALL_PATH/include && rm gendc_separator.zip
 
-if [ "$DL_VERSION_INFO" = false ]; then
+if [ "$NOT_DL_VERSION_INFO" = true ]; then
+      echo
+      echo "**********"
+      echo "develop-test mode doesn't DL version_info.json"
+      echo "**********"
+else
   if [[ "$Version" == "v24.05.04" ]]; then
       echo
       echo "**********"
