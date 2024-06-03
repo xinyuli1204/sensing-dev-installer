@@ -49,23 +49,6 @@ while true; do
       shift ;;
     -v | --version )
       Version="$2";
-
-      if [[ $Version =~ ^v[0-9]+\.[0-9]+\.[0-9]+-.*$ ]]; then
-        Alt_Version=$(echo $Version | sed 's/-.*//')
-      else
-        Alt_Version="$Version"
-      fi
-
-      echo "========"
-      echo This script will try to $Version and its same as $Alt_Version
-
-      if [[ -z "${ion_kit_config[$Alt_Version]+_}" ]]; then
-        echo "Error: Version '$Alt_Version' is not found from following versions for Linux"
-        for v in "${!ion_kit_config[@]}"; do
-          echo $v
-        done
-        exit 1
-      fi
       shift; shift ;;
     --install-path )
       INSTALL_PATH="$2";
@@ -88,6 +71,23 @@ get_sensing-dev_latest_release() {
     sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
 }
 
+if [[ $Version =~ ^v[0-9]+\.[0-9]+\.[0-9]+-.*$ ]]; then
+  Alt_Version=$(echo $Version | sed 's/-.*//');
+else
+  Alt_Version=$Version;
+fi
+
+echo "========"
+echo This script will try to $Version and its same as $Alt_Version
+
+if [[ -z "${ion_kit_config[$Alt_Version]+_}" ]]; then
+  echo "Error: Version '$Alt_Version' is not found from following versions for Linux"
+  for v in "${!ion_kit_config[@]}"; do
+    echo $v
+  done
+  exit 1
+fi
+
 if [ -z "$Version" ]; then
   Repository="Sensing-Dev/sensing-dev-installer"
   Version=`get_sensing-dev_latest_release $Repository`
@@ -95,6 +95,8 @@ if [ -z "$Version" ]; then
     Version="$EARLIEST_STABLE_SDK"
   fi
 fi
+
+
 #######################################################################################################
 
 ION_KIT_VERSION=${ion_kit_config["$Alt_Version"]}
