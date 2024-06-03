@@ -329,7 +329,8 @@ function Invoke-Script {
         Write-Output "version_info.json is not supported in this version. Please update the installer.ps1"
       }
       $jsonURL = "${baseUrl}${version}/version_info.json"
-      Invoke-WebRequest -Uri $jsonURL -OutFile "$installPath/version_info.json" -Verbose
+      Write-Host $installPath
+      Invoke-WebRequest -Uri $jsonURL -OutFile "$installPath/$installerName/version_info.json" -Verbose
 
     }
     elseif ($Url.EndsWith("msi") -or $LocalInstaller.EndsWith("msi") ) {
