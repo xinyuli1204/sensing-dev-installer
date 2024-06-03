@@ -350,12 +350,8 @@ jobs:
       uses: actions/checkout@v4.1.1
       with:
         submodules: recursive
-    - name: Create and enter build directory
-      run: |
-        mkdir build
-        cd build
+
     - name: Download installer
-      working-directory: build
       run: |
         mkdir setup_dir && cd setup_dir
         wget -O setup.sh https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/setup.sh
