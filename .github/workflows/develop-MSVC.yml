@@ -2,8 +2,8 @@ name: MSVC Sensing dev installer Build, Test
 
 on:
   push:
-    branches:
-      - '*'  # This will run the build and test jobs for every push on all branches
+    branches-ignore:
+      - main  # This will run the build and test jobs for every push on all branches except for dev to main
 
   pull_request:
     branches:
