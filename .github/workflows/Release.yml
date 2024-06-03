@@ -353,9 +353,9 @@ jobs:
     - name: Download installer
       working-directory: build
       run: |
-        $url = "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/setup.sh"
-        wget -O setup.sh $url
-
+        mkdir setup_dir && cd setup_dir
+        wget -O setup.sh https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/setup.sh
+        chmod +x ${GITHUB_WORKSPACE}/setup_dir/setup.sh
         sudo bash setup.sh --install-opencv --version ${{ github.ref_name }}
 
     - name: Check if version_info.json exists
