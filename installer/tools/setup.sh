@@ -24,16 +24,18 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
+
+
 unset ion_kit_config
 declare -A ion_kit_config=( # Declare an associative array with default values
     ["v24.05.04"]="v1.8.2"
-    ["v24.05.05-test9"]="v1.8.2"
+    ["v24.05.05"]="v1.8.2"
 )
 
 unset gendc_separator_config
 declare -A gendc_separator_config=( # Declare an associative array with default values
     ["v24.05.04"]="v0.2.6"
-    ["v24.05.05-test9"]="v0.2.6"
+    ["v24.05.05"]="v0.2.6"
 )
 
 EARLIEST_STABLE_SDK="v24.05.04"
@@ -47,8 +49,18 @@ while true; do
       shift ;;
     -v | --version )
       Version="$2";
-      if [[ -z "${ion_kit_config[$Version]+_}" ]]; then
-        echo "Error: Version '$Version' is not found from following versions for Linux"
+
+      if [[ $Version =~ ^v[0-9]+\.[0-9]+\.[0-9]+-.*$ ]]; then
+        Alt_Version=$(echo $Version | sed 's/-.*//')
+      else
+        Alt_Version=$Version
+      fi
+
+      echo "========"
+      echo This script will try to $Version and its same as $Alt_Version
+
+      if [[ -z "${ion_kit_config[$Alt_Version]+_}" ]]; then
+        echo "Error: Version '$Alt_Version' is not found from following versions for Linux"
         for v in "${!ion_kit_config[@]}"; do
           echo $v
         done
@@ -85,8 +97,8 @@ if [ -z "$Version" ]; then
 fi
 #######################################################################################################
 
-ION_KIT_VERSION=${ion_kit_config["$Version"]}
-GENDC_SEPARATOR_VERSION=${gendc_separator_config["$Version"]}
+ION_KIT_VERSION=${ion_kit_config["$Alt_Version"]}
+GENDC_SEPARATOR_VERSION=${gendc_separator_config["$Alt_Version"]}
 
 mkdir -p $INSTALL_PATH
 
