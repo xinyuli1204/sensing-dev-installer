@@ -53,7 +53,7 @@ while true; do
       if [[ $Version =~ ^v[0-9]+\.[0-9]+\.[0-9]+-.*$ ]]; then
         Alt_Version=$(echo $Version | sed 's/-.*//')
       else
-        Alt_Version=$Version
+        Alt_Version="$Version"
       fi
 
       echo "========"
