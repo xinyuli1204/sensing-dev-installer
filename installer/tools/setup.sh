@@ -71,6 +71,14 @@ get_sensing-dev_latest_release() {
     sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
 }
 
+if [ -z "$Version" ]; then
+  Repository="Sensing-Dev/sensing-dev-installer"
+  Version=`get_sensing-dev_latest_release $Repository`
+  if [[ "$Version" == "v24.01.04" ]]; then
+    Version="$EARLIEST_STABLE_SDK"
+  fi
+fi
+
 if [[ $Version =~ ^v[0-9]+\.[0-9]+\.[0-9]+-.*$ ]]; then
   Alt_Version=$(echo $Version | sed 's/-.*//');
 else
@@ -86,14 +94,6 @@ if [[ -z "${ion_kit_config[$Alt_Version]+_}" ]]; then
     echo $v
   done
   exit 1
-fi
-
-if [ -z "$Version" ]; then
-  Repository="Sensing-Dev/sensing-dev-installer"
-  Version=`get_sensing-dev_latest_release $Repository`
-  if [[ "$Version" == "v24.01.04" ]]; then
-    Version="$EARLIEST_STABLE_SDK"
-  fi
 fi
 
 
