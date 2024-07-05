@@ -175,11 +175,8 @@ jobs:
     needs: [release-windows]
     runs-on: ${{ matrix.os }}
     strategy:
-        matrix:
-          os: [windows-2019, windows-2022]
-
-    strategy:
       matrix:
+        os: [windows-2019, windows-2022]
         options: [ "-user $env:USERNAME -InstallOpenCV", "-user $env:USERNAME"] 
         version: ['current']
         exclude:
