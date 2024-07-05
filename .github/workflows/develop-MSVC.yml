@@ -145,7 +145,6 @@ jobs:
           cd installer/testcases/cpp/opencv_test  && cmake ./
           cmake --build . --config Release 
           cd Release && ./opencv_test
-          echo "opencv 4.5.5 test passed"
 
       - name: Install OpenCV separately on Windows MSVC 2022
         if: matrix.os == 'windows-2022'
@@ -159,11 +158,10 @@ jobs:
         if: matrix.os == 'windows-2022'
         run: |
           $BINPATH="${HOME}/sensing-dev/bin"
-          $OPENCVBIN="${HOME}/sensing-dev/opencv_latest/opencv/build/x64/vc16/bin"
+          $OPENCVBIN="${HOME}/sensing-dev/opencv/build/x64/vc16/bin"
           $env:PATH="$env:PATH;$BINPATH"
           $env:PATH="$env:PATH;$OPENCVBIN"
           $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
           cd installer/testcases/cpp/opencv_test  && cmake ./
           cmake --build . --config Release 
           cd Release && ./opencv_test
-          echo "opencv 4.10.0 test passed"
