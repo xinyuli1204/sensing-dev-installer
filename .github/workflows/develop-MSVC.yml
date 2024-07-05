@@ -88,9 +88,12 @@ jobs:
           path: |
             installer/build/*.zip
   test:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     permissions:
       id-token: write
+    strategy:
+        matrix:
+          os: [windows-2019, windows-2022]
     needs: build
     steps:
       - name: Checkout repository
@@ -116,7 +119,7 @@ jobs:
           $BINPATH="${HOME}/sensing-dev/bin"
           $env:PATH="$env:PATH;$BINPATH"
           $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
-          cd installer/testcases/cpp/aravis_test  && cmake -G "Visual Studio 17 2022" -A x64 ./
+          cd installer/testcases/cpp/aravis_test  && cmake ./
           cmake --build . --config Release 
           cd Release && ./aravis_test
           echo "aravis test passed"
@@ -126,19 +129,39 @@ jobs:
           $BINPATH="${HOME}/sensing-dev/bin"
           $env:PATH="$env:PATH;$BINPATH"
           $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
-          cd installer/testcases/cpp/ionkit_test && cmake -G "Visual Studio 17 2022" -A x64 ./
+          cd installer/testcases/cpp/ionkit_test && cmake ./
           cmake --build . --config Release 
           cd Release && ./ionkit_test
           echo "ion-kit test passed"
   
-      - name: Test opencv
+      - name: Test opencv for MSVC 2019
+        if: matrix.os == 'windows-2019'
         run: |
           $BINPATH="${HOME}/sensing-dev/bin"
           $OPENCVBIN="${HOME}/sensing-dev/opencv/build/x64/vc15/bin"
           $env:PATH="$env:PATH;$BINPATH"
           $env:PATH="$env:PATH;$OPENCVBIN"
           $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
-          cd installer/testcases/cpp/opencv_test  && cmake -G "Visual Studio 17 2022" -A x64 ./
+          cd installer/testcases/cpp/opencv_test  && cmake ./
           cmake --build . --config Release 
           cd Release && ./opencv_test
-          echo "opencv test passed"
+
+      - name: Install OpenCV separately on Windows MSVC 2022
+        if: matrix.os == 'windows-2022'
+        run: | 
+          Remove-Item -LiteralPath "${HOME}/sensing-dev/opencv" -Force -Recurse
+          $targetDir= "${HOME}/sensing-dev"
+          Invoke-WebRequest -Uri https://github.com/opencv/opencv/releases/download/4.10.0/opencv-4.10.0-windows.exe -OutFile opencv-4.10.0-windows.exe 
+          Start-Process -FilePath opencv-4.10.0-windows.exe -ArgumentList "-o`"$targetDir`" -y" -Wait
+
+      - name: Test opencv for MSVC 2022
+        if: matrix.os == 'windows-2022'
+        run: |
+          $BINPATH="${HOME}/sensing-dev/bin"
+          $OPENCVBIN="${HOME}/sensing-dev/opencv/build/x64/vc16/bin"
+          $env:PATH="$env:PATH;$BINPATH"
+          $env:PATH="$env:PATH;$OPENCVBIN"
+          $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
+          cd installer/testcases/cpp/opencv_test  && cmake ./
+          cmake --build . --config Release 
+          cd Release && ./opencv_test
