@@ -119,7 +119,7 @@ jobs:
           $BINPATH="${HOME}/sensing-dev/bin"
           $env:PATH="$env:PATH;$BINPATH"
           $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
-          cd installer/testcases/cpp/aravis_test  && cmake -G "Visual Studio 17 2022" -A x64 ./
+          cd installer/testcases/cpp/aravis_test  && cmake ./
           cmake --build . --config Release 
           cd Release && ./aravis_test
           echo "aravis test passed"
@@ -129,7 +129,7 @@ jobs:
           $BINPATH="${HOME}/sensing-dev/bin"
           $env:PATH="$env:PATH;$BINPATH"
           $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
-          cd installer/testcases/cpp/ionkit_test && cmake -G "Visual Studio 17 2022" -A x64 ./
+          cd installer/testcases/cpp/ionkit_test && cmake ./
           cmake --build . --config Release 
           cd Release && ./ionkit_test
           echo "ion-kit test passed"
