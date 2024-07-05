@@ -164,7 +164,10 @@ jobs:
           
   test-installer-ps1-zip:   
     needs: [release-windows]
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+        matrix:
+          os: [windows-2019, windows-2022]
 
     strategy:
       matrix:
@@ -282,7 +285,7 @@ jobs:
         $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User") 
         $env:PATH="$env:PATH;$PATH"
         $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT}
-        cd installer/testcases/cpp/aravis_test  && cmake -G "Visual Studio 17 2022" -A x64 ./
+        cd installer/testcases/cpp/aravis_test  && cmake ./
         cmake --build . --config Release 
         cd Release && ls && ./aravis_test
         echo "aravis test passed"
@@ -293,19 +296,19 @@ jobs:
         $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")    
         $env:PATH="$env:PATH;$PATH"
         $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT}
-        cd installer/testcases/cpp/ionkit_test && cmake -G "Visual Studio 17 2022" -A x64 ./
+        cd installer/testcases/cpp/ionkit_test && cmake ./
         cmake --build . --config Release 
         cd Release && ls && ./ionkit_test
         echo "ion-kit test passed"
 
     - name: Test opencv
-      if:  matrix.options == '-user $env:USERNAME -InstallOpenCV'
+      if:  matrix.options == '-user $env:USERNAME -InstallOpenCV' && matrix.os == 'windows-2019'
       run: |
         $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
         $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
         $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT} 
         $env:PATH="$env:PATH;$PATH"
-        cd installer/testcases/cpp/opencv_test  && cmake -G "Visual Studio 17 2022" -A x64 ./
+        cd installer/testcases/cpp/opencv_test  && cmake ./
         cmake --build . --config Release 
         cd Release && ./opencv_test
         echo "opencv test passed"
