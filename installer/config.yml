@@ -35,7 +35,7 @@ libraries:
     install_path: install/ion-kit
     action: download # can be 'download', 'build', or 'use_existing'
     pkg_url: "https://github.com/fixstars/ion-kit/releases/download/v1.8.3/ion-kit-1.8.3-x86-64-windows.zip"
-    pkg_sha: "3dab973362c76956965221f2cfc8b3e88c8e3583b381b9c40876bc68d7d025f2"
+    pkg_sha: "75bf579f5465d67a4e21ffca2eaf0325216cc184c4b77d2f0b7f9cec139f9842"
     git_repo: "https://github.com/fixstars/ion-kit.git"
     version: "v1.8.3"
 
