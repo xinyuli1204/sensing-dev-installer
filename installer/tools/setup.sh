@@ -37,7 +37,7 @@ unset gendc_separator_config
 declare -A gendc_separator_config=( # Declare an associative array with default values
     ["v24.05.04"]="v0.2.6"
     ["v24.05.05"]="v0.2.7"
-    ["v24.05.06"]="v0.2.7"
+    ["v24.05.06"]="v0.2.8"
 )
 
 EARLIEST_STABLE_SDK="v24.05.04"
