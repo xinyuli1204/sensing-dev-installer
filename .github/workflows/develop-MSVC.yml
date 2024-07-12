@@ -26,7 +26,10 @@ jobs:
           mkdir build
           cd build
           python ${GITHUB_WORKSPACE}/installer/src/generate_config.py
-      
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
+        with:
+          submodules: recursive
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
         with:
