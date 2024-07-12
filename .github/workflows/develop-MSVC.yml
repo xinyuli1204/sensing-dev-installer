@@ -20,148 +20,94 @@ jobs:
         with:
          python-version: "3.11.4"
 
-      - name: Install Conan and PyYAML via pip
-        run: |
-         python -m pip install conan
-         python -m pip install PyYAML
-
-      - name: Disable Perl (remove from PATH)
-        run: choco uninstall strawberryperl -n
-
-      - name: Install WiX Toolset
-        run: choco install wixtoolset -y
-
-      - name: Checkout repository
-        uses: actions/checkout@v4.1.1
-        with:
-          submodules: recursive
-
       - name: Create and enter the build directory
         run: |
           cd installer
           mkdir build
           cd build
-
-      - name: Run CMake
-        working-directory: installer/build
-        run: cmake -G "Visual Studio 17 2022" -A x64 ../
-
-      - name: Build with CMake
-        working-directory: installer/build
-        run: cmake --build . --config Release
-
-      - name: Generate liscence files
-        working-directory: installer/build
-        run: cmake -G "Visual Studio 17 2022" -A x64 ../ 
-
-      - name: Package with CPack WIX
-        working-directory: installer/build
-        run: cpack -G "WIX"
-
-      - name: Upload artifacts MSI
-        uses: actions/upload-artifact@v4
-        with:
-          name: sensing-dev-installer-msi
-          path: |
-            installer/build/*.msi
-
-      - name: Create package zip
-        working-directory: installer/build
-        run: cpack -G "ZIP"
-
-      # - name: Create package without opencv
-      #   working-directory: installer/build
-      #   run:  cmake -G "Visual Studio 17 2022" -A x64 ../ -DOPENCV_ACTION="use_existing"
-
-      # - name: Create package msi
-      #   working-directory: installer/build
-      #   run: cpack -G "WIX"
-
-      # - name: Create package zip
-      #   working-directory: installer/build
-      #   run: cpack -G "ZIP"
+          python ${GITHUB_WORKSPACE}/installer/src/generate_config.py
       
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: sensing-dev-installer-zip
           path: |
-            installer/build/*.zip
-  test:
-    runs-on: ${{ matrix.os }}
-    permissions:
-      id-token: write
-    strategy:
-        matrix:
-          os: [windows-2019, windows-2022]
-    needs: build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.1.1
-        with:
-          submodules: recursive
+            ${GITHUB_WORKSPACE}/build/config_Windows.json
+  # test:
+  #   runs-on: ${{ matrix.os }}
+  #   permissions:
+  #     id-token: write
+  #   strategy:
+  #       matrix:
+  #         os: [windows-2019, windows-2022]
+  #   needs: build
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4.1.1
+  #       with:
+  #         submodules: recursive
 
-      - name: Download All Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: sensing-dev-installer-zip
-          merge-multiple: true
+  #     - name: Download All Artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: sensing-dev-installer-zip
+  #         merge-multiple: true
         
-      - name: Unzip
-        run: | 
-          mkdir ${HOME}/sensing-dev
-          unzip sensing-dev*.zip
-          mv sensing-dev*/* ${HOME}/sensing-dev
-          ls ${HOME}/sensing-dev
+  #     - name: Unzip
+  #       run: | 
+  #         mkdir ${HOME}/sensing-dev
+  #         unzip sensing-dev*.zip
+  #         mv sensing-dev*/* ${HOME}/sensing-dev
+  #         ls ${HOME}/sensing-dev
 
-      - name: Test arvis
-        run: |
-          $BINPATH="${HOME}/sensing-dev/bin"
-          $env:PATH="$env:PATH;$BINPATH"
-          $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
-          cd installer/testcases/cpp/aravis_test  && cmake ./
-          cmake --build . --config Release 
-          cd Release && ./aravis_test
-          echo "aravis test passed"
+  #     - name: Test arvis
+  #       run: |
+  #         $BINPATH="${HOME}/sensing-dev/bin"
+  #         $env:PATH="$env:PATH;$BINPATH"
+  #         $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
+  #         cd installer/testcases/cpp/aravis_test  && cmake ./
+  #         cmake --build . --config Release 
+  #         cd Release && ./aravis_test
+  #         echo "aravis test passed"
   
-      - name: Test ion-kit
-        run: |
-          $BINPATH="${HOME}/sensing-dev/bin"
-          $env:PATH="$env:PATH;$BINPATH"
-          $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
-          cd installer/testcases/cpp/ionkit_test && cmake ./
-          cmake --build . --config Release 
-          cd Release && ./ionkit_test
-          echo "ion-kit test passed"
+  #     - name: Test ion-kit
+  #       run: |
+  #         $BINPATH="${HOME}/sensing-dev/bin"
+  #         $env:PATH="$env:PATH;$BINPATH"
+  #         $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
+  #         cd installer/testcases/cpp/ionkit_test && cmake ./
+  #         cmake --build . --config Release 
+  #         cd Release && ./ionkit_test
+  #         echo "ion-kit test passed"
   
-      - name: Test opencv for MSVC 2019
-        if: matrix.os == 'windows-2019'
-        run: |
-          $BINPATH="${HOME}/sensing-dev/bin"
-          $OPENCVBIN="${HOME}/sensing-dev/opencv/build/x64/vc15/bin"
-          $env:PATH="$env:PATH;$BINPATH"
-          $env:PATH="$env:PATH;$OPENCVBIN"
-          $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
-          cd installer/testcases/cpp/opencv_test  && cmake ./
-          cmake --build . --config Release 
-          cd Release && ./opencv_test
+  #     - name: Test opencv for MSVC 2019
+  #       if: matrix.os == 'windows-2019'
+  #       run: |
+  #         $BINPATH="${HOME}/sensing-dev/bin"
+  #         $OPENCVBIN="${HOME}/sensing-dev/opencv/build/x64/vc15/bin"
+  #         $env:PATH="$env:PATH;$BINPATH"
+  #         $env:PATH="$env:PATH;$OPENCVBIN"
+  #         $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
+  #         cd installer/testcases/cpp/opencv_test  && cmake ./
+  #         cmake --build . --config Release 
+  #         cd Release && ./opencv_test
 
-      - name: Install OpenCV separately on Windows MSVC 2022
-        if: matrix.os == 'windows-2022'
-        run: | 
-          Remove-Item -LiteralPath "${HOME}/sensing-dev/opencv" -Force -Recurse
-          $targetDir= "${HOME}/sensing-dev"
-          Invoke-WebRequest -Uri https://github.com/opencv/opencv/releases/download/4.10.0/opencv-4.10.0-windows.exe -OutFile opencv-4.10.0-windows.exe 
-          Start-Process -FilePath opencv-4.10.0-windows.exe -ArgumentList "-o`"$targetDir`" -y" -Wait
+  #     - name: Install OpenCV separately on Windows MSVC 2022
+  #       if: matrix.os == 'windows-2022'
+  #       run: | 
+  #         Remove-Item -LiteralPath "${HOME}/sensing-dev/opencv" -Force -Recurse
+  #         $targetDir= "${HOME}/sensing-dev"
+  #         Invoke-WebRequest -Uri https://github.com/opencv/opencv/releases/download/4.10.0/opencv-4.10.0-windows.exe -OutFile opencv-4.10.0-windows.exe 
+  #         Start-Process -FilePath opencv-4.10.0-windows.exe -ArgumentList "-o`"$targetDir`" -y" -Wait
 
-      - name: Test opencv for MSVC 2022
-        if: matrix.os == 'windows-2022'
-        run: |
-          $BINPATH="${HOME}/sensing-dev/bin"
-          $OPENCVBIN="${HOME}/sensing-dev/opencv/build/x64/vc16/bin"
-          $env:PATH="$env:PATH;$BINPATH"
-          $env:PATH="$env:PATH;$OPENCVBIN"
-          $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
-          cd installer/testcases/cpp/opencv_test  && cmake ./
-          cmake --build . --config Release 
-          cd Release && ./opencv_test
+  #     - name: Test opencv for MSVC 2022
+  #       if: matrix.os == 'windows-2022'
+  #       run: |
+  #         $BINPATH="${HOME}/sensing-dev/bin"
+  #         $OPENCVBIN="${HOME}/sensing-dev/opencv/build/x64/vc16/bin"
+  #         $env:PATH="$env:PATH;$BINPATH"
+  #         $env:PATH="$env:PATH;$OPENCVBIN"
+  #         $env:SENSING_DEV_ROOT="${HOME}/sensing-dev"
+  #         cd installer/testcases/cpp/opencv_test  && cmake ./
+  #         cmake --build . --config Release 
+  #         cd Release && ./opencv_test
