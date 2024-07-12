@@ -6,6 +6,7 @@ import platform
 
 import requests
 import yaml
+import json
 
 
 src_dir = os.path.dirname(__file__)
@@ -21,8 +22,9 @@ def remove_v(version):
         return version
 
 def generate_url(cmp, version):
-    print(cmp, version)
+    updated_ver = version
     url = ''
+
     if cmp == 'aravis':
         url = 'https://github.com/Sensing-Dev/aravis/releases/download/' + version
         if pf == 'Windows':
@@ -43,7 +45,7 @@ def generate_url(cmp, version):
             else:
                 url += '/Aravis-' + version + '-dependencies.zip'
         elif pf == 'Linux':
-            return None
+            return None, updated_ver
         else:
             print('Platform', pf, 'is not supported.')
             sys.exit(1)
@@ -68,6 +70,7 @@ def generate_url(cmp, version):
                 print('OpenCV', version, 'is not supported on', pf)
                 sys.exit(1)
         elif pf == 'Linux':
+            updated_ver = '4.5.2'
             if version == '4.5.2':
                 url += 'https://ion-kit.s3.us-west-2.amazonaws.com/dependencies/OpenCV-4.5.2-x86_64-gcc75.sh'
             else:
@@ -84,7 +87,7 @@ def generate_url(cmp, version):
 
     r = requests.get(url)
     if r.status_code == requests.codes.ok:
-        return url
+        return url, updated_ver
     
     print(url, 'does not exist')
     sys.exit(1)
@@ -105,18 +108,26 @@ if __name__ == '__main__':
             sys.exit(1)
 
         for cmp_name in comp_names:
+            j = {}
             cmp_version = yml_content['libraries'][cmp_name]['version']
-
-            url = generate_url(cmp_name, cmp_version)
+            
+            url, updated_ver = generate_url(cmp_name, cmp_version)
             if url:
                 print(url)
+                j['version'] = updated_ver
+                j['pkg_url'] = url
 
-    
+                if pf == 'Windows':
+                    j['pkg_sha'] = yml_content['libraries'][cmp_name]['pkg_sha']
 
+            out[cmp_name] = j
 
     dst_dir = os.path.join(root_dir, 'build')
 
     if not os.path.exists(dst_dir):
         os.makedirs(dst_dir)
+    
+    with open(os.path.join(dst_dir, 'config_' + pf+ '.json'), 'w', encoding='utf-8') as f:
+        json.dump(out, f, indent=4)
 
     
