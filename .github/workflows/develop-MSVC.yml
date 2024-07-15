@@ -30,6 +30,8 @@ jobs:
           cd installer
           mkdir build
           cd build
+          python -m pip install --upgrade pip
+          pip install -r ${{ github.workspace }}/installer/src/requirements.txt
           python ${{ github.workspace }}/installer/src/generate_config.py
 
       - name: Upload a Build Artifact
