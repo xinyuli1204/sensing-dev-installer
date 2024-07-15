@@ -122,6 +122,36 @@ function DownloadComponents(){
   }
 }
 
+function CheckComponentHash(){
+  param(
+    [string]$compName,
+    [string]$archivePath,
+    [string]$expectedHash
+  )
+  if (Test-Path "$archivePath") {
+    try {
+
+        $fileStream = [System.IO.File]::OpenRead($archivePath)
+        $hashAlgorithm = [System.Security.Cryptography.HashAlgorithm]::Create("SHA256")
+        $computedHashBytes = $hashAlgorithm.ComputeHash($fileStream)
+        $fileStream.Close()
+        
+        $computedHash = [BitConverter]::ToString($computedHashBytes) -replace "-", ""
+
+        # ハッシュ値を比較
+        if ($computedHash -eq $expectedHash) {
+            Write-Output "The component $compName has been downloaded successfully and the hash matches."
+        } else {
+            throw "The hash of the downloaded $compName does not match the expected hash."
+        }
+    } catch {
+        throw "Failed to compute or compare the hash of the downloaded $compName."
+    }
+  } else {
+    throw "The component $compName was not downloaded."
+  }
+}
+
 # function Install-ZIP(){
 #   param (
 #     [string] $installPath,
@@ -323,12 +353,42 @@ function Invoke-Script {
         New-Item -ItemType Directory -Path $tempWorkDir | Out-Null
     }
     Write-Verbose "Working Directory = $tempWorkDir"
+
+    $tempExtractionPath = "$tempWorkDir\_tempExtraction"
+    if (Test-Path $tempExtractionPath) {
+      Remove-Item -Path $tempExtractionPath -Force -Recurse
+    }
+    New-Item -ItemType Directory -Path $tempExtractionPath | Out-Null
     
     ################################################################################
-    # Get Config
+    # Get Config & Check content
     ################################################################################
-    $configURL = "${baseUrl}${version}/config_Windows.json"
-    Invoke-WebRequest -Uri $configURL -OutFile "$tempWorkDir/config_Windows.json" -Verbose
+    $configFileName = "config_Windows.json"
+    $configURL = "${baseUrl}${version}/$configFileName"
+    $configPath = "$tempWorkDir/$configFileName"
+    Invoke-WebRequest -Uri $configURL -OutFile $configPath -Verbose
+
+    if (Test-Path $configPath) {
+      try {
+        $content = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+        Write-Verbose "The config file $configFileName has been downloaded and is a valid JSON."
+      } catch {
+        throw  "The confg file $configFileName is not a valid JSON."
+      }
+    } else {
+      throw  "The config file $configFileName was not downloaded."
+    }
+
+    ################################################################################
+    # Dlownload Aravis to $tempWorkDir & extract to $tempExtractionPath
+    ################################################################################ 
+    Write-Host "Aravis $content.aravis.version will be installed"
+    Invoke-WebRequest -Uri $content.aravis.pkg_url -OutFile "$tempWorkDir/aravis.zip" -Verbose
+
+    CheckComponentHash -compName "Aravis" -archivePath "$tempWorkDir/aravis.zip" -expectedHash $content.aravis.pkg_sha
+    Expand-Archive -Path "$tempWorkDir/aravis.zip" -DestinationPath $tempExtractionPath 
+
+    
 
   #   
   #   $installerPostfixName = if ($InstallOpenCV) { "" } else { "-no-opencv" }
