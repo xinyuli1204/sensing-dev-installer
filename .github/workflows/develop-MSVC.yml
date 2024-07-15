@@ -30,14 +30,14 @@ jobs:
           cd installer
           mkdir build
           cd build
-          python ${GITHUB_WORKSPACE}/installer/src/generate_config.py
+          python ${{ github.workspace }}/installer/src/generate_config.py
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: sensing-dev-installer-zip
           path: |
-            ${GITHUB_WORKSPACE}/build/config_Windows.json
+            ${{ github.workspace }}/build/config_Windows.json
   # test:
   #   runs-on: ${{ matrix.os }}
   #   permissions:
