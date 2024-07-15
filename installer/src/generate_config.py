@@ -116,6 +116,7 @@ if __name__ == '__main__':
                 print(url)
                 j['version'] = updated_ver
                 j['pkg_url'] = url
+                j['name'] = yml_content['libraries'][cmp_name]['name']
 
                 if pf == 'Windows':
                     j['pkg_sha'] = yml_content['libraries'][cmp_name]['pkg_sha']
