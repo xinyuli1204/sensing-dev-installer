@@ -2,18 +2,17 @@ import os
 from pathlib import Path
 
 import sys
-import platform
 
 import requests
 import yaml
 import json
 
+import argparse
+
 
 src_dir = os.path.dirname(__file__)
 installer_dir = Path(src_dir).parent.absolute()
 root_dir = Path(installer_dir).parent.absolute()
-
-pf = platform.system()
 
 def remove_v(version):
     if version.startswith('v'):
@@ -21,7 +20,7 @@ def remove_v(version):
     else:
         return version
 
-def generate_url(cmp, version):
+def generate_url(cmp, version, pf):
     updated_ver = version
     url = ''
 
@@ -33,7 +32,10 @@ def generate_url(cmp, version):
             else:
                 url += '/aravis-' + version + '-win64.zip'
         elif pf == 'Linux':
-            url += '/aravis-' + version + '-x86-64-linux.tar.gz'
+            if version == '0.8.30-internal':
+                url = 'https://github.com/Sensing-Dev/aravis/releases/download/internal-0.8.30/aravis-internal-0.8.30-x86-64-linux.tar.gz'
+            else:
+                url += '/aravis-' + version + '-x86-64-linux.tar.gz'
         else:
             print('Platform', pf, 'is not supported.')
             sys.exit(1)
@@ -71,7 +73,7 @@ def generate_url(cmp, version):
                 sys.exit(1)
         elif pf == 'Linux':
             updated_ver = '4.5.2'
-            if version == '4.5.2':
+            if updated_ver == '4.5.2':
                 url += 'https://ion-kit.s3.us-west-2.amazonaws.com/dependencies/OpenCV-4.5.2-x86_64-gcc75.sh'
             else:
                 print('OpenCV', version, 'is not supported on', pf)
@@ -92,13 +94,37 @@ def generate_url(cmp, version):
     print(url, 'does not exist')
     sys.exit(1)
 
+def get_latest_tag(owner, repo):
+    url = f"https://api.github.com/repos/{owner}/{repo}/tags"
+    response = requests.get(url)
+    response.raise_for_status()  # エラーチェック
+    tags = response.json()
+    
+    if tags:
+        latest_tag = tags[0]['name']
+        return latest_tag
+    else:
+        return None
+    
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Generate config")
+    parser.add_argument('-p', '--platform', default='all', type=str, choices=['Windows', 'Linux', 'all'],  help='Which OS installer script needs this config?')
+    parser.add_argument('-v', '--version', default='latest', type=str, help='In the release workflow, specify the tag')
+    
+    argvs = parser.parse_args()
+    config_platform = ['Windows', 'Linux'] if argvs.platform == 'all' else [argvs.platform] 
+    version = get_latest_tag('Sensing-Dev', 'sensing-dev-installer') if argvs.version == 'latest' else argvs.version
+
+    print(config_platform, version)
 
     input_file_name = 'config.yml'
 
     comp_names = ['aravis', 'aravis_dep', 'ion_kit', 'opencv', 'gendc_separator']
 
-    out = {}
+    dst_dir = os.path.join(root_dir, 'build')
+    if not os.path.exists(dst_dir):
+        os.makedirs(dst_dir)
 
     with open(os.path.join(installer_dir, input_file_name)) as yml_ifs:
         try:
@@ -106,29 +132,32 @@ if __name__ == '__main__':
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(1)
+        for pf in config_platform:
+            out = {}
+            for cmp_name in comp_names:
+                j = {}
+                cmp_version = yml_content['libraries'][cmp_name]['version']
 
-        for cmp_name in comp_names:
-            j = {}
-            cmp_version = yml_content['libraries'][cmp_name]['version']
+                url, updated_ver = generate_url(cmp_name, cmp_version, pf)
+                if url:
+                    print(url)
+                    j['version'] = updated_ver
+                    j['pkg_url'] = url
+                    j['name'] = yml_content['libraries'][cmp_name]['name']
+
+                    if pf == 'Windows':
+                        j['pkg_sha'] = yml_content['libraries'][cmp_name]['pkg_sha']
+
+                out[cmp_name] = j
+
+            out['sensing_dev'] = {
+                'name' : 'sensing-dev',
+                'version' : version
+            }
+
             
-            url, updated_ver = generate_url(cmp_name, cmp_version)
-            if url:
-                print(url)
-                j['version'] = updated_ver
-                j['pkg_url'] = url
-                j['name'] = yml_content['libraries'][cmp_name]['name']
-
-                if pf == 'Windows':
-                    j['pkg_sha'] = yml_content['libraries'][cmp_name]['pkg_sha']
-
-            out[cmp_name] = j
-
-    dst_dir = os.path.join(root_dir, 'build')
-
-    if not os.path.exists(dst_dir):
-        os.makedirs(dst_dir)
-    
-    with open(os.path.join(dst_dir, 'config_' + pf+ '.json'), 'w', encoding='utf-8') as f:
-        json.dump(out, f, indent=4)
+            
+            with open(os.path.join(dst_dir, 'config_' + pf+ '.json'), 'w', encoding='utf-8') as f:
+                json.dump(out, f, indent=4)
 
     
