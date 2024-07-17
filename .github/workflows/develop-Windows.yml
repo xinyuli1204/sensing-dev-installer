@@ -9,6 +9,21 @@ on:
 
 
 jobs:
+  set_env:
+    runs-on: windows-latest
+    env: 
+      LATEST_RELEASED_SDK: v24.05.06
+      LATEST_OPENCV_VERSION: 4.10.0
+    outputs:
+      latest_sdk: ${{ steps.set-vars.outputs.latest_sdk }}
+      latest_opencv: ${{ steps.set-vars.outputs.latest_opencv }}
+    steps:
+      - name: Set environment variables
+        id: set-vars
+        run: |
+          echo "::set-output name=latest_sdk::${{ env.LATEST_RELEASED_SDK}}"
+          echo "::set-output name=latest_opencv::${{ env.LATEST_OPENCV_VERSION}}"
+
   generate_config:
     runs-on: windows-latest
 
@@ -39,13 +54,16 @@ jobs:
 
   test_installation:
     runs-on: ${{ matrix.os }}
-    needs: generate_config
-    permissions:
-      id-token: write
+    needs: [set_env, generate_config]
+
     strategy:
         matrix:
-          os: [windows-2019]
-          install_option : ["-version v24.05.06", "-configPath config_Windows.json"]
+          os: [windows-2019, windows-latest]
+          install_option : ["-version ${{ needs.set_env.outputs.latest_sdk }}", "-configPath config_Windows.json"]
+          with_openCV : ["", "-InstallOpenCV"]
+          exclude:
+            - os: windows-latest
+              with_openCV: "-InstallOpenCV"
 
     steps:
 
