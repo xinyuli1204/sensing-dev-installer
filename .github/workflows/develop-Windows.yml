@@ -58,9 +58,10 @@ jobs:
       - name: Unzip Artifacts
         run: | 
           cd download
-          Expand-Archive -Path install-test-for-windows.zip -DestinationPath '${{ github.workspace }}/items'
+          ls
+      #     Expand-Archive -Path install-test-for-windows.zip -DestinationPath '${{ github.workspace }}/items'
 
-      - name: Install with the script from Artifacts
-        run: |
-          cd ${{ github.workspace }}/items
-          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }}
+      # - name: Install with the script from Artifacts
+      #   run: |
+      #     cd ${{ github.workspace }}/items
+      #     powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }}
