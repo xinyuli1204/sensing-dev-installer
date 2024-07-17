@@ -51,6 +51,7 @@ jobs:
           path: |
             ${{ github.workspace }}/build/config_Windows.json
             ${{ github.workspace }}/installer/tools/installer.ps1
+            ${{ github.workspace }}/installer/test/cpp
 
   test_installation:
     runs-on: ${{ matrix.os }}
@@ -108,3 +109,47 @@ jobs:
             exit 1
           }
 
+      - name: Check if version_info.json exists
+        run: |
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+          $target_file = Join-Path -Path "$SENSING_DEV_ROOT" -ChildPath "version_info.json"
+          if (Test-Path $target_file){
+            echo "version_info.json exists."
+          } else{
+            echo "version_info.json does not exist."
+            exit 1
+          }
+
+      - name: Test Aravis installation and Path
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User") 
+          $env:PATH="$env:PATH;$PATH"
+          $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT}
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/aravis_test  && cmake ./
+          cmake --build . --config Release 
+          cd Release && ls && ./aravis_test
+          echo "aravis test passed"
+
+      - name: Test ion-kit
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")    
+          $env:PATH="$env:PATH;$PATH"
+          $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT}
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/ionkit_test && cmake ./
+          cmake --build . --config Release 
+          cd Release && ls && ./ionkit_test
+          echo "ion-kit test passed"
+
+      - name: Test opencv
+        if: ${{ (matrix.with_openCV == '-InstallOpenCV') }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+          $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT} 
+          $env:PATH="$env:PATH;$PATH"
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test  && cmake ./
+          cmake --build . --config Release 
+          cd Release && ./opencv_test
+          echo "opencv test passed"

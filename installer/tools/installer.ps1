@@ -5,9 +5,6 @@ Installs the Sensing SDK.
 .DESCRIPTION
 This script downloads and installs the Sensing SDK components. You can specify a particular version or the latest version will be installed by default.
 
-.PARAMETER Verbose
-Display verbose
-
 .PARAMETER version
 Specifies the version of the Sensing SDK to be installed. Default is 'latest'.
 
@@ -40,18 +37,41 @@ https://sensing-dev.github.io/doc/startup-guide/windows/index.html
 
 [cmdletbinding()]
 param(
+  [Parameter(Mandatory=$false)]
   [string]$version,
+
+  [Parameter(Mandatory=$false)]
   [string]$user,
+
+  [Parameter(Mandatory=$false)]
   [string]$installPath,
+
+  [Parameter(Mandatory=$false)]
   [switch]$InstallOpenCV = $false,
+
   # for debug purporse
+  [Parameter(Mandatory=$false)]
   [switch]$debugScript = $false,
+
+  [Parameter(Mandatory=$false)]
   [string]$configPath,
+
+  [Parameter(Mandatory=$false)]
   [string]$archiveAravis,
+
+  [Parameter(Mandatory=$false)]
   [string]$archiveAravisDep,
+
+  [Parameter(Mandatory=$false)]
   [string]$archiveIonKit,
+
+  [Parameter(Mandatory=$false)]
   [string]$archiveGenDCSeparator,
+
+  [Parameter(Mandatory=$false)]
   [string]$archiveOpenCV,
+
+  [Parameter(Mandatory=$false)]
   [string]$uninstallerPath
 )
 
@@ -443,9 +463,11 @@ function Invoke-Script {
       $compoURL = $content.$key.pkg_url
 
       Write-Host "$compName $compVersion will be installed"
-      if (-not $archiveName){
+      if (-not $archiveOpenCV){
         $archiveName = "$tempWorkDir/$compName.exe"
         Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
+      }else{
+        $archiveName = $archiveOpenCV
       }
   
       CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
