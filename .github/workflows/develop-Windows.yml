@@ -80,13 +80,13 @@ jobs:
           Move-Item -Path ${{ github.workspace }}/download/installer/tools/installer.ps1 -Destination ${{ github.workspace }}/test
 
       - name: Install with the script from Artifacts (general)
-        if: ! ${{matrix.os == 'windows-latest' && matrix.with_openCV == '-InstallOpenCV'}}
+        if: ! ${{ (matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV')}}
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }}
 
       - name: Install with the script from Artifacts (with the latest MSVC with OpenCV)
-        if: ${{matrix.os == 'windows-latest' && matrix.with_openCV == '-InstallOpenCV'}}
+        if: ${{(matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV')}}
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }}
@@ -95,7 +95,7 @@ jobs:
           Start-Process -FilePath opencv-${{ needs.set_env.outputs.latest_opencv }}-windows.exe -ArgumentList "-o`"$targetDir`" -y" -Wait
 
       - name: Check if OpenCV exists on Windows
-        if: ${{ matrix.with_openCV == '-InstallOpenCV' }}
+        if: ${{ (matrix.with_openCV == '-InstallOpenCV') }}
         id: check_opencv
         run: |
           $filePath = "${env:LOCALAPPDATA}\sensing-dev\opencv"
