@@ -57,7 +57,8 @@ jobs:
 
       - name: Unzip Artifacts
         run: | 
-          Expand-Archive -Path '${{ github.workspace }}/download/install-test-for-windows.zip' -DestinationPath '${{ github.workspace }}/items'
+          cd download
+          Expand-Archive -Path install-test-for-windows.zip -DestinationPath '${{ github.workspace }}/items'
 
       - name: Install with the script from Artifacts
         run: |
