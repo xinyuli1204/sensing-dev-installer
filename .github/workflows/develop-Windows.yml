@@ -61,9 +61,9 @@ jobs:
           os: [windows-2019, windows-latest]
           install_option : ["-version ${{ needs.set_env.outputs.latest_sdk }}", "-configPath config_Windows.json"]
           with_openCV : ["", "-InstallOpenCV"]
-          exclude:
-            - os: windows-latest
-              with_openCV: "-InstallOpenCV"
+          # exclude:
+          #   - os: windows-latest
+          #     with_openCV: "-InstallOpenCV"
 
     steps:
 
@@ -79,7 +79,32 @@ jobs:
           Move-Item -Path ${{ github.workspace }}/download/build/config_Windows.json -Destination ${{ github.workspace }}/test
           Move-Item -Path ${{ github.workspace }}/download/installer/tools/installer.ps1 -Destination ${{ github.workspace }}/test
 
-      - name: Install with the script from Artifacts
+      - name: Install with the script from Artifacts (general)
+        if: ! ${{matrix.os == 'windows-latest' && matrix.with_openCV == '-InstallOpenCV'}}
+        run: |
+          cd ${{ github.workspace }}/test
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }}
+
+      - name: Install with the script from Artifacts (with the latest MSVC with OpenCV)
+        if: ${{matrix.os == 'windows-latest' && matrix.with_openCV == '-InstallOpenCV'}}
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }}
+          $targetDir= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+          Invoke-WebRequest -Uri https://github.com/opencv/opencv/releases/download/${{ needs.set_env.outputs.latest_opencv }}/opencv-${{ needs.set_env.outputs.latest_opencv }}-windows.exe -OutFile opencv-${{ needs.set_env.outputs.latest_opencv }}-windows.exe 
+          Start-Process -FilePath opencv-${{ needs.set_env.outputs.latest_opencv }}-windows.exe -ArgumentList "-o`"$targetDir`" -y" -Wait
+
+      - name: Check if OpenCV exists on Windows
+        if: ${{ matrix.with_openCV == '-InstallOpenCV' }}
+        id: check_opencv
+        run: |
+          $filePath = "${env:LOCALAPPDATA}\sensing-dev\opencv"
+          if (Test-Path $filePath) {
+            Write-Output "File exists: $filePath"
+            Write-Output "::set-output name=file_exists::true"
+          } else {
+            Write-Output "File does not exist: $filePath"
+            Write-Output "::set-output name=file_exists::false"
+            exit 1
+          }
+
