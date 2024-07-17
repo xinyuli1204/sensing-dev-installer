@@ -55,15 +55,13 @@ jobs:
           name: install-test-for-windows
           path: download
 
-      - name: Unzip Artifacts
+      - name: Set all items under test directory
         run: | 
           New-Item -ItemType Directory -Path ${{ github.workspace }}/test | Out-Null
           Move-Item -Path ${{ github.workspace }}/download/build/config_Windows.json -Destination ${{ github.workspace }}/test
           Move-Item -Path ${{ github.workspace }}/download/installer/tools/installer.ps1 -Destination ${{ github.workspace }}/test
-          cd download
-          ls
 
-      # - name: Install with the script from Artifacts
-      #   run: |
-      #     cd ${{ github.workspace }}/items
-      #     powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }}
+      - name: Install with the script from Artifacts
+        run: |
+          cd ${{ github.workspace }}/test
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }}
