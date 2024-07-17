@@ -169,6 +169,7 @@ jobs:
           if (${{ matrix.os }}  == 'windows-latest' ){
             $OpenCVBin = Join-Path -Path $SENSING_DEV_ROOT -ChildPath ${{ needs.set_env.outputs.latest_opencv_bin }}
           } 
+          $env:PATH="$env:PATH;$OpenCVBin"
           cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test  && cmake ./
           cmake --build . --config Release 
           cd Release && ./opencv_test
