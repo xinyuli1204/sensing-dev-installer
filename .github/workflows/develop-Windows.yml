@@ -51,7 +51,7 @@ jobs:
           path: |
             ${{ github.workspace }}/build/config_Windows.json
             ${{ github.workspace }}/installer/tools/installer.ps1
-            ${{ github.workspace }}/installer/test/cpp
+            ${{ github.workspace }}/installer/testcases/cpp
 
   test_installation:
     runs-on: ${{ matrix.os }}
