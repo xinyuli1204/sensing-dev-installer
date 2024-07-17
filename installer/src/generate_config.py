@@ -155,8 +155,6 @@ if __name__ == '__main__':
                 'version' : version
             }
 
-            
-            
             with open(os.path.join(dst_dir, 'config_' + pf+ '.json'), 'w', encoding='utf-8') as f:
                 json.dump(out, f, indent=4)
 
