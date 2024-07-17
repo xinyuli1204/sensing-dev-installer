@@ -44,15 +44,20 @@ param(
   [string]$user,
   [string]$installPath,
   [switch]$InstallOpenCV = $false,
-  [switch]$debugScript = $false
+  # for debug purporse
+  [switch]$debugScript = $false,
+  [string]$configPath,
+  [string]$archiveAravis,
+  [string]$archiveAravisDep,
+  [string]$archiveIonKit,
+  [string]$archiveGenDCSeparator,
+  [string]$archiveOpenCV,
+  [string]$uninstallerPath
 )
 
 $installerName = "sensing-dev"
 $repositoryName = "Sensing-Dev/sensing-dev-installer"
-
-
-
-
+$baseUrl = "https://github.com/$repositoryName/releases/download/"
 
 function Get-LatestVersion {
   param (
@@ -80,8 +85,6 @@ function Get-LatestVersion {
 
 
 
-
-
 function CheckComponentHash(){
   param(
     [string]$compName,
@@ -101,16 +104,17 @@ function CheckComponentHash(){
             Write-Output "The component $compName has been downloaded successfully and the hash matches."
         } else {
             throw "The hash of the downloaded $compName does not match the expected hash."
+            exit 1
         }
     } catch {
         throw "Failed to compute or compare the hash of the downloaded $compName."
+        exit 1
     }
   } else {
     throw "The component $compName was not downloaded."
+    exit 1
   }
 }
-
-
 
 
 
@@ -136,6 +140,7 @@ function MergeComponents(){
       }
     } catch {
       throw "Failed to copy the content of $_"
+      exit 1
     }
   }
   # copy other files such as VERSION
@@ -148,6 +153,7 @@ function MergeComponents(){
       Move-Item -Force -Path (Join-Path $CompDirName $_) -Destination $tempInstallPath
     } catch {
       throw "Failed to copy the content of $_"
+      exit 1
     }
   }
 
@@ -155,8 +161,6 @@ function MergeComponents(){
     Remove-Item -Force $CompDirName -Recurse
   }
 }
-
-
 
 
 
@@ -229,8 +233,6 @@ function Set-EnvironmentVariables {
 
 
 
-
-
 function Generate-VersionInfo {
   param(
     [string]$SensingDevRoot,
@@ -267,6 +269,24 @@ function Generate-VersionInfo {
 
 
 
+function Get-ConfigContent{
+  param(
+    [string]$configPath
+  )
+  if (Test-Path $configPath) {
+    try {
+      $content = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+      Write-Verbose "The config file $configPath a valid JSON."
+    } catch {
+      throw  "The confg file $configPath is not a valid JSON."
+      exit 1
+    }
+  } else {
+    throw  "The config file $configPath was not downloaded."
+    exit 1
+  }
+  return $content
+}
 
 
 function Invoke-Script {
@@ -292,16 +312,6 @@ function Invoke-Script {
     Write-Verbose "installPath = $installPath"
 
     ################################################################################
-    # Get Version
-    ################################################################################
-    if (-not $version) {
-      $version = Get-LatestVersion
-    }
-    Write-Host "Sensing-Dev $version will be installed." 
-
-    $baseUrl = "https://github.com/$repositoryName/releases/download/"
-
-    ################################################################################
     # Get Working Directory
     ################################################################################
     $tempWorkDir = Join-Path -Path $env:TEMP -ChildPath $installerName
@@ -323,60 +333,88 @@ function Invoke-Script {
     New-Item -ItemType Directory -Path $tempInstallPath | Out-Null
 
     ################################################################################
+    # Get Version & config of components
+    ################################################################################
+    $configFileName = "config_Windows.json"
+    if ($configPath){
+      Write-Verbose "Found local $configFileName = $configPath"
+      $content = Get-ConfigContent -configPath $configPath
+      $version_from_config = $content.sensing_dev.version
+
+      if ($version){
+        Write-Host "Set vertion ($version) and config version ($version_from_config) have a conflict."
+        if (-not ($version_from_config -eq $version)){
+          Write-Error "Set vertion ($version) and config version ($version_from_config) have a conflict."
+          exit 1
+        }
+      } else{
+        $version = $version_from_config
+      }
+    }
+
+    if (-not $version) {
+      $version = Get-LatestVersion
+    }
+    Write-Host "Sensing-Dev $version will be installed." -ForegroundColor Green
+
+    if (-not $configPath){
+      $configURL = "${baseUrl}${version}/$configFileName"
+      $configPath = "$tempWorkDir/$configFileName"
+      Invoke-WebRequest -Uri $configURL -OutFile $configPath
+      $content = Get-ConfigContent -configPath $configPath
+    } 
+    
+    ################################################################################
     # Get Uninstaller
     ################################################################################
     $uninstallerFileName = "uninstaller.ps1"
-    $uninstallerURL = "${baseUrl}${version}/$uninstallerFileName"
-    $uninstallerPath = "$tempWorkDir/$uninstallerFileName"
-    Invoke-WebRequest -Uri $uninstallerURL -OutFile $uninstallerPath
-    
-    ################################################################################
-    # Get Config & Check content
-    ################################################################################
-    $configFileName = "config_Windows.json"
-    $configURL = "${baseUrl}${version}/$configFileName"
-    $configPath = "$tempWorkDir/$configFileName"
-    Invoke-WebRequest -Uri $configURL -OutFile $configPath
-
-    if (Test-Path $configPath) {
-      try {
-        $content = Get-Content -Path $configPath -Raw | ConvertFrom-Json
-        Write-Verbose "The config file $configFileName has been downloaded and is a valid JSON."
-      } catch {
-        throw  "The confg file $configFileName is not a valid JSON."
-      }
+    if (-not $uninstallerPath) {
+      $uninstallerURL = "${baseUrl}${version}/$uninstallerFileName"
+      $uninstallerPath = "$tempWorkDir/$uninstallerFileName"
+      Invoke-WebRequest -Uri $uninstallerURL -OutFile $uninstallerPath
     } else {
-      throw  "The config file $configFileName was not downloaded."
+      Write-Verbose "Found local $uninstallerFileName = $uninstallerPath"
+      Copy-Item -Path $uninstallerPath -Destination (Join-Path $tempWorkDir $uninstallerFileName)
+      $uninstallerPath = "$tempWorkDir/$uninstallerFileName"
     }
 
     ################################################################################
     # Dlownload each component to $tempWorkDir & extract to $tempExtractionPath
     ################################################################################ 
     $keys = @("aravis", "aravis_dep", "ion_kit", "gendc_separator")
+    $archives = @($archiveAravis, $archiveAravisDep, $archiveIonKit, $archiveGenDCSeparator)
 
-    foreach ($key in $keys) {
+    # foreach ($key in $keys) {
+    for($i = 0; $i -lt $keys.count; $i++){
+      $key = $keys[$i]
+      $archiveName = $archives[$i]
+
       if ($content.PSObject.Properties.Name -contains $key) {
 
         $compVersion = $content.$key.version
         $compName = $content.$key.name
-        $archiveName = "$tempWorkDir/$compName.zip"
         $compHash = $content.$key.pkg_sha
         $compoURL = $content.$key.pkg_url
 
         Write-Host "$compName $compVersion will be installed"
-        Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
+        if (-not $archiveName){
+          $archiveName = "$tempWorkDir/$compName.zip"
+          Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
+        }
     
         CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
         Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath 
 
       } else {
         throw "Component $key does not exist in $configFileName"
+        exit 1
       }
 
       if (-not $debugScript){
         Remove-Item -Force $archiveName
       }
     }
+      
 
 
     Get-ChildItem $tempExtractionPath -Directory |
@@ -401,12 +439,14 @@ function Invoke-Script {
       $key = "opencv"
       $compVersion = $content.$key.version
       $compName = $content.$key.name
-      $archiveName = "$tempWorkDir/$compName.exe"
       $compHash = $content.$key.pkg_sha
       $compoURL = $content.$key.pkg_url
 
       Write-Host "$compName $compVersion will be installed"
-      Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
+      if (-not $archiveName){
+        $archiveName = "$tempWorkDir/$compName.exe"
+        Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
+      }
   
       CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
       Start-Process -FilePath $archiveName -ArgumentList "-o`"$tempExtractionPath`" -y" -Wait
@@ -422,7 +462,6 @@ function Invoke-Script {
     ################################################################################
     $SeinsingDevRoot = Join-Path -Path $installPath -ChildPath $installerName
 
-    Write-Host "--------------------------------------" -ForegroundColor Green
     Write-Host "Uninstall old sensing-dev if any" -ForegroundColor Green
     & $uninstallerPath
     Move-Item -Force -Path $tempInstallPath -Destination $installPath
@@ -438,6 +477,8 @@ function Invoke-Script {
     # Generate version info json
     ################################################################################
     Generate-VersionInfo -SensingDevRoot $SeinsingDevRoot -InstallOpenCV $InstallOpenCV -compInfo $content
+
+    Write-Host "Done Sensing-Dev installation" -ForegroundColor Green
   }
 }
 
