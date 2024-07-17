@@ -43,42 +43,16 @@ param(
   [string]$version,
   [string]$user,
   [string]$installPath,
-  [switch]$InstallOpenCV = $false
+  [switch]$InstallOpenCV = $false,
+  [switch]$debugScript = $false
 )
 
 $installerName = "sensing-dev"
 $repositoryName = "Sensing-Dev/sensing-dev-installer"
 
-# function Test-WritePermission {
-#   param (
-#     [string]$path,
-#     [string]$user = "$env:USERDOMAIN\$env:USERNAME"
-#   )
 
-#   $writeAllowed = $false
-#   $acl = Get-Acl $path
 
-#   foreach ($access in $acl.Access) {
-#     if ($access.IdentityReference -eq $user) {
-#       if (
-#         ( 
-#           $access.FileSystemRights -match "Write" -or 
-#           $access.FileSystemRights -match "FullControl"
-#         ) -and 
-#         $access.AccessControlType -eq "Allow") {
-#         Write-Host "$user has write permission for $path"
-#         $writeAllowed = $true
-#         break
-#       }
-#     }
-#   }
 
-#   if (-not $writeAllowed) {
-#     Write-Host "$user needs write permission for $path"
-#   }
-
-#   return $writeAllowed
-# }
 
 function Get-LatestVersion {
   param (
@@ -104,23 +78,9 @@ function Get-LatestVersion {
   }
 }
 
-function DownloadComponents(){
-  param(
-    [switch]$InstallOpenCV
-  )
-  begin {
-    # Clear-Host
-    $script:Date = Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
-    Write-Host "--------------------------------------" -ForegroundColor Green
-    Write-Host " Start Download SDK Components $script:Date" -ForegroundColor Green
-  }
-  process {
-    $tempWorkDir = Join-Path -Path $env:TEMP -ChildPath $installerName
-    if (-not (Test-Path $tempWorkDir)) {
-        New-Item -ItemType Directory -Path $tempWorkDir | Out-Null
-    }
-  }
-}
+
+
+
 
 function CheckComponentHash(){
   param(
@@ -137,8 +97,6 @@ function CheckComponentHash(){
         $fileStream.Close()
         
         $computedHash = [BitConverter]::ToString($computedHashBytes) -replace "-", ""
-
-        # ハッシュ値を比較
         if ($computedHash -eq $expectedHash) {
             Write-Output "The component $compName has been downloaded successfully and the hash matches."
         } else {
@@ -152,166 +110,164 @@ function CheckComponentHash(){
   }
 }
 
-# function Install-ZIP(){
-#   param (
-#     [string] $installPath,
-#     [string] $installerName,
-#     [string] $installerPostfixName,
-#     [string] $versionNum,
-#     # exit code
-#     [Parameter(Mandatory = $false)]
-#     [int32] $ProcessExit = 0
-#   )
-#   begin {
-#     # Clear-Host
-#     $script:Date = Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
-#     Write-Host "--------------------------------------" -ForegroundColor Green
-#     Write-Host " Start Installation Zip $script:Date" -ForegroundColor Green
-#   }
-#   process {
-#     if(-not $LocalInstaller)
-#     {
-#       $tempZipPath = "${env:TEMP}\${installerName}.zip"
-#       Invoke-WebRequest -Uri $script:Url -OutFile $tempZipPath -Verbose
-#     }
-#     else{
-#       $tempZipPath = $LocalInstaller
-#     }
 
-#     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-#     $tempExtractionPath = "$installPath\_tempExtraction"
-#     # Create the temporary extraction directory if it doesn't exist
-#     if (-not (Test-Path $tempExtractionPath)) {
-#       New-Item -Path $tempExtractionPath -ItemType Directory
-#     }
-#     # Attempt to extract to the temporary extraction directory
-#     try {
-#       Expand-Archive -Path $tempZipPath -DestinationPath $tempExtractionPath 
-#       Start-Sleep -Seconds 5
-#       Get-ChildItem -Path $tempExtractionPath
-#       # If extraction is successful, replace the old contents with the new
-#       $installPath = "$installPath\$installerName"
-#       if (Test-Path -Path ${installPath}) {
-#         Get-ChildItem -Path $installPath -Recurse | Remove-Item -Force -Recurse
-#       }
-#       else {
-#         New-Item -Path $installPath -ItemType Directory
-#       }
-#       Move-Item -Path "$tempExtractionPath\${installerName}${installerPostfixName}-${versionNum}-win64\*" -Destination $installPath -Force
 
-#       # Cleanup the temporary extraction directory
-#       Remove-Item -Path $tempExtractionPath -Force -Recurse
-#     }
-#     catch {
-#       $ProcessExit = 1      
-#     }    
-#     # Optionally delete the ZIP file after extraction
-#     Remove-Item -Path $tempZipPath -Force
-#   }
-#   end {
 
-#     if ($ProcessExit -eq 0) {
-#         Write-Host " Success installing Zip  at $script:Date" -ForegroundColor Green
-#         Write-Host "--------------------------------------" -ForegroundColor Green
-#     }
-#     else {
-#         # Optional: Cleanup the temporary extraction directory
-#         Remove-Item -Path $tempExtractionPath -Force -Recurse
-#         Write-Error "Extraction failed. Original contents remain unchanged."
-#         Write-Error " $ProcessExit Failed installing Zip  at $script:Date"
-#         Write-Host "--------------------------------------" -ForegroundColor Green
-#         exit $ProcessExit
-#     }
-#     return $ProcessExit
-#   }
-# }
+# copy all <component>/bin to <tempInstallPath> bin, <component>/lib to <tempInstallPath> lib... 
+function MergeComponents(){
+  param(
+    [string]$CompDirName,
+    [string]$tempInstallPath
+  )
+  # copy directories such as bin, lib, include...
+  Get-ChildItem $CompDirName -Directory |
+  Foreach-Object {
+    $dstDir = Join-Path -Path $tempInstallPath -ChildPath $_
+    $srcDir = $_.FullName
+    if (-not (Test-Path $dstDir)) {
+      # create dst bubm lib, include...
+      New-Item -ItemType Directory -Path "$dstDir" | Out-Null
+    }
+    try{
+      Get-ChildItem $srcDir -Recurse| 
+      Foreach-Object {
+        Move-Item -Force -Path (Join-Path $srcDir $_) -Destination (Join-Path $dstDir $_)
+      }
+    } catch {
+      throw "Failed to copy the content of $_"
+    }
+  }
+  # copy other files such as VERSION
+  Get-ChildItem $CompDirName -File |
+  Foreach-Object{
+    if (-not (Test-Path $tempInstallPath)) {
+      New-Item -ItemType Directory -Path $tempInstallPath | Out-Null
+    }
+    try{
+      Move-Item -Force -Path (Join-Path $CompDirName $_) -Destination $tempInstallPath
+    } catch {
+      throw "Failed to copy the content of $_"
+    }
+  }
 
-# function Install-MSI(){
-#   param (
-#     [string] $installPath,
-#     [string] $installerName,
-#     # exit code
-#     [Parameter(Mandatory = $false)]
-#     [int32] $ProcessExit = 0
-#   )
-#   begin {
-#     # Clear-Host
-#     $script:Date = Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
-#     Write-Host "--------------------------------------" -ForegroundColor Green
-#     Write-Host " Start Installation MSI $script:Date" -ForegroundColor Green
-#   }
-#   process {
+  if (-not $debugScript){
+    Remove-Item -Force $CompDirName -Recurse
+  }
+}
 
-#     $installPath = "$installPath\$installerName"
 
-#     # Download MSI to a temp location
-#     if(-not $LocalInstaller){
 
-#       $tempMsiPath = "${env:TEMP}\${installerName}.msi"
-#       Invoke-WebRequest -Uri $script:Url -OutFile $tempMsiPath -Verbose
-#     }
-#     else{
-#       $tempMsiPath = $LocalInstaller
-#     }
 
-#     $log = "${env:TEMP}\${installerName}__install.log"
-#     $hasAccess = Test-WritePermission -user $user -path $installPath
 
-#     if($hasAccess){
-#       Start-Process -Wait -FilePath "msiexec.exe" -ArgumentList "/i ${tempMsiPath} INSTALL_ROOT=${installPath} /qb /l*v ${log}" 
-#     }
-#     else {
-#       Start-Process -Wait -FilePath "msiexec.exe" -ArgumentList "/i ${tempMsiPath} INSTALL_ROOT=${installPath} /qb /l*v ${log}" -Verb RunAs
-#     }
+function Set-EnvironmentVariables {
+  param(
+    [string]$SensingDevRoot,
+    [bool]$InstallOpenCV
+  )
+  begin {
+    # Clear-Host
+    $script:Date = Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+    Write-Host "--------------------------------------" -ForegroundColor Green
+    Write-Host "Set Environment variables  $script:Date" -ForegroundColor Green
+  }
+  process {
+    # Define the paths you want to add
+    $newPath = "${SensingDevRoot}\bin"
+    $newPythonPath = "${SensingDevRoot}\lib\site-packages"
 
-#     # Check if the process started and finished successfully
-#     if ($?) {
-#       Write-Host "${installerName} installed at ${installPath}. See detailed log here ${log} "
-#     }
-#     else {
-#       $ProcessExit = 1         
-#     }
-#     # Optionally delete the MSI file after extraction
-#     Remove-Item -Path $tempMsiPath -Force
-#   }
-#   end {
+    Write-Verbose "SensingDevRoot : $SensingDevRoot"
 
-#     if ($ProcessExit -eq 0) {
-#         Write-Host " Success installing MSI  at $script:Date" -ForegroundColor Green
-#         Write-Host "--------------------------------------" -ForegroundColor Green
-#     }
-#     else {
-#         Write-Error "The ${installerName} installation encountered an error. See detailed log here ${log}"     
-#         Write-Error " $BuildExit Failed installing MSI  at $script:Date"
-#         Write-Host "--------------------------------------" -ForegroundColor Green
-#         exit $ProcessExit
-#     }
-#     return $ProcessExit
-#   }
-# }
+    # Get current PATH and PYTHONPATH
+    $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    $currentPythonPath = [Environment]::GetEnvironmentVariable("PYTHONPATH", "User")
 
-# function Set-InstallerEnvironment(){
-#   param (
-#     [string] $installPath,
-#     [string] $installerName
-#   )
-#   $installPath
-#   if (Test-Path -Path ${installPath}) {
-#     $relativeScriptPath = "tools\Env.ps1"
-#     # Run the .ps1 file from the installed package
-#     $ps1ScriptPath = Join-Path -Path $installPath\$installerName -ChildPath $relativeScriptPath
-#     Write-Host "ps1ScriptPath = $ps1ScriptPath"
-#     if (Test-Path -Path $ps1ScriptPath -PathType Leaf) {
-#       $outputEnvScript = & $ps1ScriptPath -InstallOpenCV:$InstallOpenCV
-#       Write-Host $outputEnvScript
-#     }
-#     else {
-#       Write-Error "Script at $relativeScriptPath not found in the installation path!"
-#       exit 1
-#     }
-#   } 
-# }
+    # Update PATH if the new path is not already in it
+    if (-not $currentPath.Contains($newPath)) {
+        $currentPath += ";$newPath" 
+        [Environment]::SetEnvironmentVariable("Path", $currentPath, "User")
+        Write-Output "$newPath is added to PATH"
+    }
+    Write-Verbose "Updated PATH: $currentPath"
+
+    # If OpenCV is installed under sensing-dev, add <sensing-dev>/opencv/build/x64/vc*/bin to PATH
+    if ($InstallOpenCV){
+        $opencvBinPath = (Get-ChildItem -Path "$SensingDevRoot/opencv/build/x64/vc*/bin" -Directory)[-1]
+        if ($null -eq $opencvBinPath) {
+            Write-Output "No $SensingDevRoot/opencv/build/x64/vc*/bin found under Sensing-Dev; skip adding to PATH"
+        } else {
+            if (-not $currentPath.Contains($opencvBinPath)) {
+                $currentPath += ";$opencvBinPath"
+                [Environment]::SetEnvironmentVariable("Path", $currentPath, "User")
+                Write-Output "$opencvBinPath is added to PATH"
+            }
+            Write-Verbose "Updated PATH: $currentPath"
+        }
+    }
+
+    # Update PYTHONPATH if the new path is not already in it
+    if (-not $currentPythonPath -or (-not $currentPythonPath.Contains($newPythonPath))) {
+        if ($currentPythonPath) {
+            $currentPythonPath += ";$newPythonPath"
+        } else {
+            $currentPythonPath = $newPythonPath
+        }
+        [Environment]::SetEnvironmentVariable("PYTHONPATH", $currentPythonPath, "User")
+        Write-Verbose "$newPythonPath is added to PYTHONPATH"
+    }
+    Write-Host "Updated PYTHONPATH: $currentPythonPath"
+
+    # Update SENSING_DEV_ROOT if the new path is not already in it
+    [Environment]::SetEnvironmentVariable("SENSING_DEV_ROOT", $SensingDevRoot, "User")
+    Write-Host "Updated SENSING_DEV_ROOT: $SensingDevRoot"
+
+    $gstLibPath = "$SensingDevRoot\lib\girepository-1.0"
+    [Environment]::SetEnvironmentVariable("GST_PLUGIN_PATH", $gstLibPath, "User")
+    Write-Host "Updated GST_PLUGIN_PATH: $gstLibPath"
+  }
+}
+
+
+
+
+
+function Generate-VersionInfo {
+  param(
+    [string]$SensingDevRoot,
+    [bool]$InstallOpenCV,
+    $compInfo
+  )
+  begin {
+    # Clear-Host
+    $script:Date = Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
+    Write-Host "--------------------------------------" -ForegroundColor Green
+    Write-Host " version_info.json is generated under $SensingDevRoot  $script:Date" -ForegroundColor Green
+  }
+  process {
+    $compVersionInfo = @{}
+    $keys = @("aravis", "aravis_dep", "ion_kit", "gendc_separator")
+    foreach ($key in $keys) {
+
+      $compVersionInfo.Add($compInfo.$key.name, $compInfo.$key.version)
+    }
+
+    if ($InstallOpenCV){
+      $compVersionInfo.Add($compInfo.opencv.name, $compInfo.opencv.version)
+    }
+
+    $jsonContent = @{
+      'Sensing-Dev' = $compInfo.sensing_dev.version
+    }
+    $jsonContent.Add("SDK components", $compVersionInfo)
+
+    $jsonfile = Join-Path -Path $SensingDevRoot -ChildPath 'version_info.json'
+    $jsonContent | ConvertTo-Json -Depth 5 | Set-Content $jsonfile
+  }
+}
+
+
+
+
 
 function Invoke-Script {
   param(
@@ -359,6 +315,20 @@ function Invoke-Script {
       Remove-Item -Path $tempExtractionPath -Force -Recurse
     }
     New-Item -ItemType Directory -Path $tempExtractionPath | Out-Null
+
+    $tempInstallPath = "$tempWorkDir\sensing-dev"
+    if (Test-Path $tempInstallPath) {
+      Remove-Item -Path $tempInstallPath -Force -Recurse
+    }
+    New-Item -ItemType Directory -Path $tempInstallPath | Out-Null
+
+    ################################################################################
+    # Get Uninstaller
+    ################################################################################
+    $uninstallerFileName = "uninstaller.ps1"
+    $uninstallerURL = "${baseUrl}${version}/$uninstallerFileName"
+    $uninstallerPath = "$tempWorkDir/$uninstallerFileName"
+    Invoke-WebRequest -Uri $uninstallerURL -OutFile $uninstallerPath
     
     ################################################################################
     # Get Config & Check content
@@ -366,7 +336,7 @@ function Invoke-Script {
     $configFileName = "config_Windows.json"
     $configURL = "${baseUrl}${version}/$configFileName"
     $configPath = "$tempWorkDir/$configFileName"
-    Invoke-WebRequest -Uri $configURL -OutFile $configPath -Verbose
+    Invoke-WebRequest -Uri $configURL -OutFile $configPath
 
     if (Test-Path $configPath) {
       try {
@@ -380,76 +350,101 @@ function Invoke-Script {
     }
 
     ################################################################################
-    # Dlownload Aravis to $tempWorkDir & extract to $tempExtractionPath
+    # Dlownload each component to $tempWorkDir & extract to $tempExtractionPath
     ################################################################################ 
-    Write-Host "Aravis $content.aravis.version will be installed"
-    Invoke-WebRequest -Uri $content.aravis.pkg_url -OutFile "$tempWorkDir/aravis.zip" -Verbose
+    $keys = @("aravis", "aravis_dep", "ion_kit", "gendc_separator")
 
-    CheckComponentHash -compName "Aravis" -archivePath "$tempWorkDir/aravis.zip" -expectedHash $content.aravis.pkg_sha
-    Expand-Archive -Path "$tempWorkDir/aravis.zip" -DestinationPath $tempExtractionPath 
+    foreach ($key in $keys) {
+      if ($content.PSObject.Properties.Name -contains $key) {
 
+        $compVersion = $content.$key.version
+        $compName = $content.$key.name
+        $archiveName = "$tempWorkDir/$compName.zip"
+        $compHash = $content.$key.pkg_sha
+        $compoURL = $content.$key.pkg_url
+
+        Write-Host "$compName $compVersion will be installed"
+        Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
     
+        CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
+        Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath 
 
-  #   
-  #   $installerPostfixName = if ($InstallOpenCV) { "" } else { "-no-opencv" }
-  #   $script:Url = $Url
-  #   # Construct download URL if not provided
-  #   if (-not $Url -and -not $LocalInstaller) {
-  #     $baseUrl = "https://github.com/Sensing-Dev/sensing-dev-installer/releases/download/"
-    
-  #     if (-not $version) {
-  #       $version = Get-LatestVersion
-  #     }
-    
-  #     if ($version -match 'v(\d+\.\d+\.\d+)(-\w+)?') {
-  #       $versionNum = $matches[1] 
-  #       Write-Output "Installing version: $version" 
-  #     }
-  #     if ($versionNum -lt "24.01.01") {
-  #       Write-Output "InstallOpenCV option is unsupported for this version. Please update the installer.ps1"
-  #       $installerPostfixName = ""
-  #     }
-  #     $downloadBase = "${baseUrl}${version}/${installerName}${installerPostfixName}-${versionNum}-win64"
-  #     $script:Url = if ($user) { "${downloadBase}.zip" } else { "${downloadBase}.msi" }
-  #     Write-Host "URL : $Url"
-  #   }
+      } else {
+        throw "Component $key does not exist in $configFileName"
+      }
 
-  #   # Check if the URL ends with .zip or .msi and call the respective function
-  #   if ($Url.EndsWith("zip") -or $LocalInstaller.EndsWith("zip")) {      
-  #     Install-ZIP -installPath $installPath  -installerName $installerName -installerPostfixName $installerPostfixName -versionNum $versionNum  
+      if (-not $debugScript){
+        Remove-Item -Force $archiveName
+      }
+    }
+
+
+    Get-ChildItem $tempExtractionPath -Directory |
+    Foreach-Object {
+      $CompDirName = $_.FullName
+
+      if ($_.Name -eq "gendc_separator"){
+        # GenDC Separator is a header library.
+        # Move all contents under gendc_separator to under $tempInstallPath/include/gendc_separator 
+        MergeComponents -CompDirName $CompDirName -tempInstallPath "$tempInstallPath/include/gendc_separator"
+      }else{
+        # Move all contents under $CompDirName to under $tempInstallPath
+        MergeComponents -CompDirName $CompDirName -tempInstallPath $tempInstallPath
+      }  
       
-  #     if ($versionNum -lt "24.01.05"){
-  #       Write-Output "version_info.json is not supported in this version. Please update the installer.ps1"
-  #     }
-  #     $jsonURL = "${baseUrl}${version}/version_info.json"
-  #     Write-Host $installPath
-  #     Invoke-WebRequest -Uri $jsonURL -OutFile "$installPath/$installerName/version_info.json" -Verbose
+    }
 
-  #   }
-  #   elseif ($Url.EndsWith("msi") -or $LocalInstaller.EndsWith("msi") ) {
-  #     Install-MSI -installPath $installPath -installerName $installerName 
-  #   }
-  #   else {
-  #     Write-Error "Unsupported installer format."
-  #     $ProcessExit = 1
-  #   }
-  #   Set-InstallerEnvironment -installPath $installPath -installerName $installerName
-  # }
-  # end{
-  #   if ($ProcessExit -eq 0) {
-  #     Write-Host " Installation Success at $script:Date" -ForegroundColor Green
-  #     Write-Host "--------------------------------------" -ForegroundColor Green
-  #   }
-  #   else {
-  #       Write-Error " Installation Failed at $script:Date"
-  #       Write-Host "--------------------------------------" -ForegroundColor Green
-  #   }
-  #   exit $ProcessExit
+    ################################################################################
+    # Dlownload OpenCV to $tempWorkDir & extract to $tempExtractionPath
+    ################################################################################
+    if ($InstallOpenCV){
+      $key = "opencv"
+      $compVersion = $content.$key.version
+      $compName = $content.$key.name
+      $archiveName = "$tempWorkDir/$compName.exe"
+      $compHash = $content.$key.pkg_sha
+      $compoURL = $content.$key.pkg_url
+
+      Write-Host "$compName $compVersion will be installed"
+      Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
+  
+      CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
+      Start-Process -FilePath $archiveName -ArgumentList "-o`"$tempExtractionPath`" -y" -Wait
+      if (-not $debugScript){
+        Remove-Item -Force $archiveName
+      }
+
+      Move-Item -Force -Path "$tempExtractionPath/opencv" -Destination $tempInstallPath
+    } 
+    
+    ################################################################################
+    # Uninstall old Sensing-Dev Move $tempInstallPath to $installPath
+    ################################################################################
+    $SeinsingDevRoot = Join-Path -Path $installPath -ChildPath $installerName
+
+    Write-Host "--------------------------------------" -ForegroundColor Green
+    Write-Host "Uninstall old sensing-dev if any" -ForegroundColor Green
+    & $uninstallerPath
+    Move-Item -Force -Path $tempInstallPath -Destination $installPath
+    Move-Item -Force -Path $uninstallerPath -Destination $SeinsingDevRoot
+    Write-Host "--------------------------------------" -ForegroundColor Green
+
+    ################################################################################
+    # Set Environment variables
+    ################################################################################
+    Set-EnvironmentVariables -SensingDevRoot $SeinsingDevRoot -InstallOpenCV $InstallOpenCV
+
+    ################################################################################
+    # Generate version info json
+    ################################################################################
+    Generate-VersionInfo -SensingDevRoot $SeinsingDevRoot -InstallOpenCV $InstallOpenCV -compInfo $content
   }
 }
 
 #--------------------------------------------------------------
 
 Invoke-Script
+
+
 
 
