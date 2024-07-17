@@ -80,7 +80,7 @@ jobs:
           Move-Item -Path ${{ github.workspace }}/download/installer/tools/installer.ps1 -Destination ${{ github.workspace }}/test
 
       - name: Install with the script from Artifacts (general)
-        if: ! ${{ (matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV')}}
+        if: ${{ !((matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV'))}}
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }}
