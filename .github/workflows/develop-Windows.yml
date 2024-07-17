@@ -1,3 +1,19 @@
+name: Generate Windows Config and test installation with script
+
+# This workflow generate and copy
+# 1. config_Windows.json based on the current latest config & release tag
+# 2. installer.ps1
+# to artifact
+# 
+# Then test installation with combination of 
+# [latest release, config_Windows.json]
+# [MSVC 2019 and 2022]
+# [with/without OpenCV]
+# 
+# Note that MSVC 2022 (17.10 or later in the future) cannot find OpenCV 4.5.5
+# So install OpenCV 4.10.0 for MSVC 2022
+# Reference: https://github.com/Sensing-Dev/sensing-dev-installer/pull/111
+
 on:
   push:
     branches-ignore:
@@ -14,15 +30,18 @@ jobs:
     env: 
       LATEST_RELEASED_SDK: v24.05.06
       LATEST_OPENCV_VERSION: 4.10.0
+      LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
     outputs:
       latest_sdk: ${{ steps.set-vars.outputs.latest_sdk }}
       latest_opencv: ${{ steps.set-vars.outputs.latest_opencv }}
+      latest_opencv_bin: ${{ steps.set-vars.outputs.latest_opencv_bin }}
     steps:
       - name: Set environment variables
         id: set-vars
         run: |
           echo "::set-output name=latest_sdk::${{ env.LATEST_RELEASED_SDK}}"
           echo "::set-output name=latest_opencv::${{ env.LATEST_OPENCV_VERSION}}"
+          echo "::set-output name=latest_opencv_bin::${{ env.LATEST_OPENCV_BIN_PATH}}"
 
   generate_config:
     runs-on: windows-latest
@@ -129,7 +148,6 @@ jobs:
           cd ${{ github.workspace }}/download/installer/testcases/cpp/aravis_test  && cmake ./
           cmake --build . --config Release 
           cd Release && ls && ./aravis_test
-          echo "aravis test passed"
 
       - name: Test ion-kit
         run: |
@@ -140,7 +158,6 @@ jobs:
           cd ${{ github.workspace }}/download/installer/testcases/cpp/ionkit_test && cmake ./
           cmake --build . --config Release 
           cd Release && ls && ./ionkit_test
-          echo "ion-kit test passed"
 
       - name: Test opencv
         if: ${{ (matrix.with_openCV == '-InstallOpenCV') }}
@@ -149,7 +166,9 @@ jobs:
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
           $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT} 
           $env:PATH="$env:PATH;$PATH"
+          if (${{ matrix.os }}  == 'windows-latest' ){
+            $OpenCVBin = Join-Path -Path $SENSING_DEV_ROOT -ChildPath ${{ needs.set_env.outputs.latest_opencv_bin }}
+          } 
           cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test  && cmake ./
           cmake --build . --config Release 
           cd Release && ./opencv_test
-          echo "opencv test passed"
