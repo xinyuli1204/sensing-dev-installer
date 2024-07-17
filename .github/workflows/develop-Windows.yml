@@ -1,0 +1,65 @@
+on:
+  push:
+    branches-ignore:
+      - main  # This will run the build and test jobs for every push on all branches except for dev to main
+
+  pull_request:
+    branches:
+      - '*'  # This will run the build and test jobs for pull requests to all branches
+
+
+jobs:
+  generate_config:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v4.7.1
+        with:
+          python-version: "3.11.4"
+
+      - name: Create and enter the build directory
+        run: |
+          cd installer
+          mkdir build && cd build
+          python -m pip install --upgrade pip
+          pip install -r ${{ github.workspace }}/installer/src/requirements.txt
+          python ${{ github.workspace }}/installer/src/generate_config.py -p Windows
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-test-for-windows
+          path: |
+            ${{ github.workspace }}/build/config_Windows.json
+            ${{ github.workspace }}/installer/tools/installer.ps1
+
+  test_installation:
+    runs-on: ${{ matrix.os }}
+    needs: generate_config
+    permissions:
+      id-token: write
+    strategy:
+        matrix:
+          os: [windows-2019]
+          install_option : ["-version v24.05.06", "-configPath config_Windows.json"]
+
+    steps:
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-test-for-windows
+          path: download
+
+      - name: Unzip Artifacts
+        run: | 
+          Expand-Archive -Path '${{ github.workspace }}/download/install-test-for-windows.zip' -DestinationPath '${{ github.workspace }}/items'
+
+      - name: Install with the script from Artifacts
+        run: |
+          cd ${{ github.workspace }}/items
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }}
