@@ -62,7 +62,7 @@ jobs:
           with_openCV : ["", "--install-opencv"]
 
     steps:
-      - name: Download installer
+      - name: Download installer & install
         run: |
           mkdir setup_dir && cd setup_dir
           wget -O setup.sh https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/setup.sh
@@ -109,3 +109,32 @@ jobs:
           echo "Python script output: $python_output"
           eval "$python_output"
           ./opencv_test
+
+  windows_installation:
+    runs-on: ${{ matrix.os }}
+    needs: [set_env, release]
+
+    strategy:
+        matrix:
+          os: [windows-2019, windows-latest]
+          version : ["${{ needs.set_env.outputs.ref_name }}", "v24.05.06, "v24.01.04"]
+          with_openCV : ["", "-InstallOpenCV"]
+          exclude:
+            - os: windows-latest
+              with_openCV: "-InstallOpenCV"
+              version: "-version 24.05.06"
+            - os: windows-latest
+              with_openCV: "-InstallOpenCV"
+              version: "-version 24.01.04"
+    steps:
+      - name: Download installer & install
+        run: |
+          $url = "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/installer.ps1"
+          Invoke-WebRequest $url -OutFile .\installer.ps1
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 -version ${{ matrix.version }} ${{ matrix.with_openCV }}
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-test-for-windows
+          path: download
