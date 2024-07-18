@@ -35,16 +35,18 @@ jobs:
       LATEST_OPENCV_VERSION: 4.10.0
       LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
     outputs:
-      latest_sdk: ${{ steps.set-vars.outputs.latest_sdk }}
-      latest_opencv: ${{ steps.set-vars.outputs.latest_opencv }}
-      latest_opencv_bin: ${{ steps.set-vars.outputs.latest_opencv_bin }}
+      LATEST_RELEASED_SDK: ${{ steps.set-vars.outputs.latest_sdk }}
+      LATEST_OPENCV_VERSION: ${{ steps.set-vars.outputs.latest_opencv }}
+      LATEST_OPENCV_BIN_PATH: ${{ steps.set-vars.outputs.latest_opencv_bin }}
     steps:
-      - name: Set environment variables
+      - name: Set environment variables 
         id: set-vars
         run: |
-          echo "latest_sdk=${{ env.LATEST_RELEASED_SDK}}" >>$GITHUB_OUTPUT
-          echo "latest_opencv=${{ env.LATEST_OPENCV_VERSION}}" >>$GITHUB_OUTPUT
-          echo "latest_opencv_bin=${{ env.LATEST_OPENCV_BIN_PATH}}" >>$GITHUB_OUTPUT
+          {
+            "latest_sdk=${{ env.LATEST_RELEASED_SDK}}"
+            "latest_opencv=${{ env.LATEST_OPENCV_VERSION}}"
+            "latest_opencv_bin=${{ env.LATEST_OPENCV_BIN_PATH}}"
+          } >> $env:GITHUB_OUTPUT
 
   generate_config:
     runs-on: windows-latest
@@ -82,14 +84,13 @@ jobs:
     strategy:
         matrix:
           os: [windows-2019, windows-latest]
-          install_option : ["-version ${{ needs.set_env.outputs.latest_sdk }}", "-configPath config_Windows.json"]
+          install_option : ["-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}", "-configPath config_Windows.json"]
           with_openCV : ["", "-InstallOpenCV"]
           # exclude:
           #   - os: windows-latest
           #     with_openCV: "-InstallOpenCV"
 
     steps:
-
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -114,8 +115,8 @@ jobs:
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }}
           $targetDir= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
-          Invoke-WebRequest -Uri https://github.com/opencv/opencv/releases/download/${{ needs.set_env.outputs.latest_opencv }}/opencv-${{ needs.set_env.outputs.latest_opencv }}-windows.exe -OutFile opencv-${{ needs.set_env.outputs.latest_opencv }}-windows.exe 
-          Start-Process -FilePath opencv-${{ needs.set_env.outputs.latest_opencv }}-windows.exe -ArgumentList "-o`"$targetDir`" -y" -Wait
+          Invoke-WebRequest -Uri https://github.com/opencv/opencv/releases/download/${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}/opencv-${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}-windows.exe -OutFile opencv-${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}-windows.exe 
+          Start-Process -FilePath opencv-${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}-windows.exe -ArgumentList "-o`"$targetDir`" -y" -Wait
 
       - name: Check if OpenCV exists on Windows
         if: ${{ (matrix.with_openCV == '-InstallOpenCV') }}
@@ -178,7 +179,7 @@ jobs:
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
           $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT} 
           $env:PATH="$env:PATH;$PATH"
-          $OpenCVBin = Join-Path -Path $SENSING_DEV_ROOT -ChildPath ${{ needs.set_env.outputs.latest_opencv_bin }} 
+          $OpenCVBin = Join-Path -Path $SENSING_DEV_ROOT -ChildPath ${{ needs.set_env.outputs.LATEST_OPENCV_BIN_PATH }} 
           $env:PATH="$env:PATH;$OpenCVBin"
           cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test  && cmake ./
           cmake --build . --config Release 
