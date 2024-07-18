@@ -20,5 +20,6 @@ int main(int argc, char *argv[])
          std::cout << e.what() << std::endl;
          return 1;
     }
+    std::cout << "PASSED" << std::endl;
     return 0;
 }

@@ -6,7 +6,16 @@ on:
       - "v*.*.*"  # vYY.MM.Patch example v23.08.00 etc.
 
 jobs:
-  generate_config:
+  set_env:
+    runs-on: ubuntu-22.04
+    outputs:
+      ref_name: ${{ steps.get_ref_name.outputs.ref_name }}
+    steps:
+      - name: Get the ref name
+        id: get_ref_name
+        run: echo "ref_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+
+  release:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
@@ -25,7 +34,15 @@ jobs:
           pip install -r ${{ github.workspace }}/installer/src/requirements.txt
           python ${{ github.workspace }}/installer/src/generate_config.py -v ${{ github.ref_name }}
 
-      - name: Release version_info.json      
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-cases
+          path: |
+            ${{ github.workspace }}/installer/testcases
+            ${{ github.workspace }}/build
+
+      - name: Release     
         uses: softprops/action-gh-release@v1
         with:
           files: |
@@ -34,3 +51,61 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  linux_installation:
+    runs-on: ${{ matrix.os }}
+    needs: [set_env, release]
+
+    strategy:
+        matrix:
+          os: [ubuntu-22.04]
+          install_option : ["--version ${{ needs.set_env.outputs.ref_name }}"]
+          with_openCV : ["", "--install-opencv"]
+
+    steps:
+      - name: Download installer
+        run: |
+          mkdir setup_dir && cd setup_dir
+          wget -O setup.sh https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/setup.sh
+          chmod +x ${GITHUB_WORKSPACE}/setup_dir/setup.sh
+          sudo bash setup.sh ${{ matrix.install_option }} ${{ matrix.with_openCV }}
+
+      - name: Check if version_info.json exists
+        id: check_version_info
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "/opt/sensing-dev/version_info.json"
+          fail: true
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-test-for-linux
+          path: download
+
+      - name: Test Aravis installation and Path
+        run: |
+          export LD_LIBRARY_PATH=/opt/sensing-dev/lib:/opt/sensing-dev/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/aravis_test
+          python_output=$(python ${{ github.workspace }}/download/installer/testcases/cpp/get_compile_command.py aravis_test.cpp)
+          echo "Python script output: $python_output"
+          eval "$python_output"
+          ./aravis_test
+
+      - name: Test ion-kit
+        run: |
+          export LD_LIBRARY_PATH=/opt/sensing-dev/lib:/opt/sensing-dev/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/ionkit_test
+          python_output=$(python ${{ github.workspace }}/download/installer/testcases/cpp/get_compile_command.py ionkit_test.cpp)
+          echo "Python script output: $python_output"
+          eval "$python_output"
+          ./ionkit_test
+
+      - name: Test opencv
+        if: ${{ (matrix.with_openCV == '--install-opencv') }}
+        run: |
+          export LD_LIBRARY_PATH=/opt/sensing-dev/lib:/opt/sensing-dev/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test
+          python_output=$(python ${{ github.workspace }}/download/installer/testcases/cpp/get_compile_command.py opencv_test.cpp)
+          echo "Python script output: $python_output"
+          eval "$python_output"
+          ./opencv_test

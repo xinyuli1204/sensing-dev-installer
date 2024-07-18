@@ -48,9 +48,9 @@ while [[ "$#" -gt 0 ]]; do
     --verbose) verbose=true ;;
     --user) user="$2"; shift ;;
     --installPath) installPath="$2"; shift ;;
-    --InstallOpenCV) InstallOpenCV=true ;;
+    --install-opencv) InstallOpenCV=true ;;
     --debugScript) debugScript=true ;;
-    --configPath) configPath="$2"; shift ;;
+    --config-path) configPath="$2"; shift ;;
     --archiveAravis) archiveAravis="$2"; shift ;;
     --archiveAravisDep) archiveAravisDep="$2"; shift ;;
     --archiveIonKit) archiveIonKit="$2"; shift ;;
