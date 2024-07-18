@@ -35,18 +35,17 @@ jobs:
       LATEST_OPENCV_VERSION: 4.10.0
       LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
     outputs:
-      LATEST_RELEASED_SDK: ${{ steps.set-vars.outputs.latest_sdk }}
-      LATEST_OPENCV_VERSION: ${{ steps.set-vars.outputs.latest_opencv }}
-      LATEST_OPENCV_BIN_PATH: ${{ steps.set-vars.outputs.latest_opencv_bin }}
+      LATEST_RELEASED_SDK: ${{ steps.set-vars.outputs.LATEST_RELEASED_SDK }}
+      LATEST_OPENCV_VERSION: ${{ steps.set-vars.outputs.LATEST_OPENCV_VERSION }}
+      LATEST_OPENCV_BIN_PATH: ${{ steps.set-vars.outputs.LATEST_OPENCV_BIN_PATH }}
     steps:
       - name: Set environment variables 
         id: set-vars
         run: |
-          {
-            "latest_sdk=${{ env.LATEST_RELEASED_SDK}}"
-            "latest_opencv=${{ env.LATEST_OPENCV_VERSION}}"
-            "latest_opencv_bin=${{ env.LATEST_OPENCV_BIN_PATH}}"
-          } >> $env:GITHUB_OUTPUT
+          echo "LATEST_RELEASED_SDK=${{ env.LATEST_RELEASED_SDK}}" >> $env:GITHUB_OUTPUT
+          echo "LATEST_OPENCV_VERSION=${{ env.LATEST_OPENCV_VERSION}}" >> $env:GITHUB_OUTPUT
+          echo "LATEST_OPENCV_BIN_PATH=${{ env.LATEST_OPENCV_BIN_PATH}}" >> $env:GITHUB_OUTPUT
+
 
   generate_config:
     runs-on: windows-latest
