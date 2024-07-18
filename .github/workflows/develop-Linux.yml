@@ -40,9 +40,9 @@ jobs:
       - name: Set environment variables 
         id: set-vars
         run: |
-          echo "LATEST_RELEASED_SDK=${{ env.LATEST_RELEASED_SDK}}" >> $env:GITHUB_OUTPUT
-          echo "LATEST_OPENCV_VERSION=${{ env.LATEST_OPENCV_VERSION}}" >> $env:GITHUB_OUTPUT
-          echo "LATEST_OPENCV_BIN_PATH=${{ env.LATEST_OPENCV_BIN_PATH}}" >> $env:GITHUB_OUTPUT
+          echo "LATEST_RELEASED_SDK=${{ env.LATEST_RELEASED_SDK}}" >> $GITHUB_OUTPUT
+          echo "LATEST_OPENCV_VERSION=${{ env.LATEST_OPENCV_VERSION}}" >> $GITHUB_OUTPUT
+          echo "LATEST_OPENCV_BIN_PATH=${{ env.LATEST_OPENCV_BIN_PATH}}" >> $GITHUB_OUTPUT
 
 
   generate_config:
