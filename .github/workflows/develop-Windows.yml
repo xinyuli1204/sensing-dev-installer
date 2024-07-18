@@ -13,6 +13,9 @@ name: Generate Windows Config and test installation with script
 # Note that MSVC 2022 (17.10 or later in the future) cannot find OpenCV 4.5.5
 # So install OpenCV 4.10.0 for MSVC 2022
 # Reference: https://github.com/Sensing-Dev/sensing-dev-installer/pull/111
+#
+# For Aravis, we did not add the Python test yet
+# TODO: after separate C++ and Python installation of Aravis, setup test
 
 on:
   push:
@@ -70,7 +73,7 @@ jobs:
           path: |
             ${{ github.workspace }}/build/config_Windows.json
             ${{ github.workspace }}/installer/tools/installer.ps1
-            ${{ github.workspace }}/installer/testcases/cpp
+            ${{ github.workspace }}/installer/testcases
 
   test_installation:
     runs-on: ${{ matrix.os }}
@@ -182,3 +185,58 @@ jobs:
           cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test  && cmake ./
           cmake --build . --config Release 
           cd Release && ./opencv_test
+
+          
+
+  test_python:
+    runs-on: ${{ matrix.os }}
+    needs: [set_env, generate_config]
+    strategy:
+      matrix:
+        os: [windows-2019, windows-latest]
+        python_version: [3.10, 3,11]
+
+    steps:
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-test-for-windows
+          path: download
+
+      - name: Get config content and install python modules
+        run: | 
+          $comp_info = Get-Content -Path ${{ github.workspace }}/download/build/config_Windows.json -Raw | ConvertFrom-Json
+          $ionkit_version = $comp_info.ion_kit.version
+          $gendc_separator_version = $comp_info.gendc_separator.version
+          if ( $ionkit_version.StartsWith("v") ){ 
+            $ionkit_version = $ionkit_version.substring(1)
+          }
+          if ( $gendc_separator_version.StartsWith("v") ){ 
+            $gendc_separator_version = $gendc_separator_version.substring(1)
+          }
+          pip install ion-python==$ionkit_version
+          pip install gendc-python==$gendc_separator_version
+          pip install numpy
+          pip install opencv-python
+
+      # - name: Test Aravis
+      #   run: |
+      #     cd ${{ github.workspace }}/download/installer/testcases/python
+      #     python aravis_test.py
+
+      - name: Test ion-kit
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python ionkit_test.py
+
+      - name: Test OpenCV
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python opencv_test.py
+          
+                    
+
+
+    
+    
