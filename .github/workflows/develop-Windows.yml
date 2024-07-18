@@ -26,14 +26,16 @@ on:
     branches:
       - '*'  # This will run the build and test jobs for pull requests to all branches
 
+### modify here for update #####################################################
+env: 
+  LATEST_RELEASED_SDK: v24.05.06
+  LATEST_OPENCV_VERSION: 4.10.0
+  LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
+################################################################################
 
 jobs:
   set_env:
     runs-on: windows-latest
-    env: 
-      LATEST_RELEASED_SDK: v24.05.06
-      LATEST_OPENCV_VERSION: 4.10.0
-      LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
     outputs:
       LATEST_RELEASED_SDK: ${{ steps.set-vars.outputs.LATEST_RELEASED_SDK }}
       LATEST_OPENCV_VERSION: ${{ steps.set-vars.outputs.LATEST_OPENCV_VERSION }}
@@ -59,7 +61,7 @@ jobs:
         with:
           python-version: "3.11.4"
 
-      - name: Create and enter the build directory
+      - name: Create config for Windows
         run: |
           cd installer
           mkdir build && cd build
