@@ -42,9 +42,9 @@ jobs:
       - name: Set environment variables
         id: set-vars
         run: |
-          echo "::set-output name=latest_sdk::${{ env.LATEST_RELEASED_SDK}}"
-          echo "::set-output name=latest_opencv::${{ env.LATEST_OPENCV_VERSION}}"
-          echo "::set-output name=latest_opencv_bin::${{ env.LATEST_OPENCV_BIN_PATH}}"
+          echo "latest_sdk=${{ env.LATEST_RELEASED_SDK}}" >>$GITHUB_OUTPUT
+          echo "latest_opencv=${{ env.LATEST_OPENCV_VERSION}}" >>$GITHUB_OUTPUT
+          echo "latest_opencv_bin=${{ env.LATEST_OPENCV_BIN_PATH}}" >>$GITHUB_OUTPUT
 
   generate_config:
     runs-on: windows-latest
@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@v4.1.1
 
       - name: Setup Python
-        uses: actions/setup-python@v4.7.1
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11.4"
 
@@ -124,10 +124,8 @@ jobs:
           $filePath = "${env:LOCALAPPDATA}\sensing-dev\opencv"
           if (Test-Path $filePath) {
             Write-Output "File exists: $filePath"
-            Write-Output "::set-output name=file_exists::true"
           } else {
             Write-Output "File does not exist: $filePath"
-            Write-Output "::set-output name=file_exists::false"
             exit 1
           }
 
@@ -198,7 +196,7 @@ jobs:
 
     steps:
       - name: Setup Python
-        uses: actions/setup-python@v4.7.1
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python_version }}
 
