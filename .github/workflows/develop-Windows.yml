@@ -194,9 +194,13 @@ jobs:
     strategy:
       matrix:
         os: [windows-2019, windows-latest]
-        python_version: [3.10, 3,11]
+        python_version: ["3.10", "3.11"]
 
     steps:
+      - name: Setup Python
+        uses: actions/setup-python@v4.7.1
+        with:
+          python-version: ${{ matrix.python_version }}
 
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
