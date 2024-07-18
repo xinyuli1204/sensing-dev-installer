@@ -1,4 +1,11 @@
-// This checks if ion-kit installed under SENSING_DEV_ROOT directory.
+/*
+
+g++ ionkit_test.cpp -o ionkit_test  \
+-I /opt/sensing-dev/include \
+-L /opt/sensing-dev/lib \
+-lHalide -lion-core
+
+*/
 
 #include <ion/ion.h>
 

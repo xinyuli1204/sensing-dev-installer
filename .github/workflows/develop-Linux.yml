@@ -1,0 +1,204 @@
+name: Generate Linux Config and test installation with script
+
+# This workflow generate and copy
+# 1. config_Windows.json based on the current latest config & release tag
+# 2. setup.sh
+# to artifact
+# 
+# Then test installation with combination of 
+# [latest release, config_Linux.json]
+# [ubuntu-22.04]
+# [with/without OpenCV]
+#
+# For Aravis, we did not add the Python test yet
+# TODO: after separate C++ and Python installation of Aravis, setup test
+
+on:
+  push:
+    branches-ignore:
+      - main  # This will run the build and test jobs for every push on all branches except for dev to main
+
+  pull_request:
+    branches:
+      - '*'  # This will run the build and test jobs for pull requests to all branches
+
+### modify here for update #####################################################
+env: 
+  LATEST_RELEASED_SDK: v24.05.06
+  LATEST_OPENCV_VERSION: 4.10.0
+  LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
+################################################################################
+
+jobs:
+  set_env:
+    runs-on: ubuntu-22.04
+    outputs:
+      LATEST_RELEASED_SDK: ${{ steps.set-vars.outputs.LATEST_RELEASED_SDK }}
+      LATEST_OPENCV_VERSION: ${{ steps.set-vars.outputs.LATEST_OPENCV_VERSION }}
+      LATEST_OPENCV_BIN_PATH: ${{ steps.set-vars.outputs.LATEST_OPENCV_BIN_PATH }}
+    steps:
+      - name: Set environment variables 
+        id: set-vars
+        run: |
+          echo "LATEST_RELEASED_SDK=${{ env.LATEST_RELEASED_SDK}}" >> $env:GITHUB_OUTPUT
+          echo "LATEST_OPENCV_VERSION=${{ env.LATEST_OPENCV_VERSION}}" >> $env:GITHUB_OUTPUT
+          echo "LATEST_OPENCV_BIN_PATH=${{ env.LATEST_OPENCV_BIN_PATH}}" >> $env:GITHUB_OUTPUT
+
+
+  generate_config:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.4"
+
+      - name: Create config for Linux
+        run: |
+          cd installer
+          mkdir build && cd build
+          python -m pip install --upgrade pip
+          pip install -r ${{ github.workspace }}/installer/src/requirements.txt
+          python ${{ github.workspace }}/installer/src/generate_config.py -p Linux
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-test-for-linux
+          path: |
+            ${{ github.workspace }}/build/config_Linux.json
+            ${{ github.workspace }}/installer/tools/setup.sh
+            ${{ github.workspace }}/installer/testcases
+
+  test_installation:
+    runs-on: ${{ matrix.os }}
+    needs: [set_env, generate_config]
+
+    strategy:
+        matrix:
+          os: [ubuntu-22.04]
+          install_option : ["--version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}", "--configPath config_Linux.json"]
+          with_openCV : ["", "--InstallOpenCV"]
+
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-test-for-windows
+          path: download
+
+      - name: Set all items under test directory
+        run: | 
+          mkdir -p ${{ github.workspace }}/test
+          mv ${{ github.workspace }}/download/build/config_Linux.json ${{ github.workspace }}/test
+          mv ${{ github.workspace }}/download/installer/tools/setup.sh ${{ github.workspace }}/test
+
+      - name: Install with the script from Artifacts (general)
+        if: ${{ !((matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV'))}}
+        run: |
+          cd ${{ github.workspace }}/test
+          chmod +x setup.sh
+          sudo bash setup.sh ${{ matrix.install_option }} ${{ matrix.with_openCV }}
+
+      - name: Check if version_info.json exists
+        id: check_version_info
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "/opt/sensing-dev/version_info.json"
+          fail: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.4"
+
+      - name: Test Aravis installation and Path
+        run: |
+          export LD_LIBRARY_PATH=/opt/sensing-dev/lib:/opt/sensing-dev/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/aravis_test
+          python_output=$(python ${{ github.workspace }}/download/installer/testcases/cpp/get_compile_command.py aravis_test.cpp)
+          echo "Python script output: $python_output"
+          eval "$python_output"
+          ./aravis_test
+
+      - name: Test ion-kit
+        run: |
+          export LD_LIBRARY_PATH=/opt/sensing-dev/lib:/opt/sensing-dev/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/ionkit_test
+          python_output=$(python ${{ github.workspace }}/download/installer/testcases/cpp/get_compile_command.py ionkit_test.cpp)
+          echo "Python script output: $python_output"
+          eval "$python_output"
+          ./ionkit_test
+
+      - name: Test opencv
+        run: |
+          export LD_LIBRARY_PATH=/opt/sensing-dev/lib:/opt/sensing-dev/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test
+          python_output=$(python ${{ github.workspace }}/download/installer/testcases/cpp/get_compile_command.py opencv_test.cpp)
+          echo "Python script output: $python_output"
+          eval "$python_output"
+          ./opencv_test
+
+          
+
+  test_python:
+    runs-on: ${{ matrix.os }}
+    needs: [set_env, generate_config]
+    strategy:
+      matrix:
+        os: [ubuntu-22.04]
+        python_version: ["3.10", "3.11"]
+
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-test-for-linux
+          path: download
+
+      - name: Get config content and install python modules
+        run: | 
+          $comp_info = Get-Content -Path ${{ github.workspace }}/download/build/config_Linux.json -Raw | ConvertFrom-Json
+          $ionkit_version = $comp_info.ion_kit.version
+          $gendc_separator_version = $comp_info.gendc_separator.version
+          if ( $ionkit_version.StartsWith("v") ){ 
+            $ionkit_version = $ionkit_version.substring(1)
+          }
+          if ( $gendc_separator_version.StartsWith("v") ){ 
+            $gendc_separator_version = $gendc_separator_version.substring(1)
+          }
+          pip install ion-python==$ionkit_version
+          pip install gendc-python==$gendc_separator_version
+          pip install numpy
+          pip install opencv-python
+
+      # - name: Test Aravis
+      #   run: |
+      #     export GI_TYPELIB_PATH=/opt/sensing-dev/lib/x86_64-linux-gnu/girepository-1.0:$GI_TYPELIB_PATH
+      #     cd ${{ github.workspace }}/download/installer/testcases/python
+      #     python aravis_test.py
+
+      - name: Test ion-kit
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python ionkit_test.py
+
+      - name: Test OpenCV
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python opencv_test.py
+          
+                    
+
+
+    
+    

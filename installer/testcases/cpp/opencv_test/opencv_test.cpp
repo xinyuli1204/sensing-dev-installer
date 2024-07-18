@@ -1,4 +1,11 @@
-// This checks if opencv installed under SENSING_DEV_ROOT directory.
+/*
+
+g++ opencv_test.cpp -o opencv_test  \
+-I /opt/sensing-dev/include/opencv4 \
+-L /opt/sensing-dev/lib \
+-lopencv_core  
+
+*/
 
 #include <exception>
 #include <iostream>
