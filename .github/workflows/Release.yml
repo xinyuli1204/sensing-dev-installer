@@ -29,8 +29,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ${{ github.workspace }}/build/
-            ${{ github.workspace }}/installer/tools
+            ${{ github.workspace }}/build/*
+            ${{ github.workspace }}/installer/tools/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
