@@ -166,15 +166,19 @@ jobs:
 
       - name: Get config content and install python modules
         run: | 
-          $comp_info = Get-Content -Path ${{ github.workspace }}/download/build/config_Linux.json -Raw | ConvertFrom-Json
-          $ionkit_version = $comp_info.ion_kit.version
-          $gendc_separator_version = $comp_info.gendc_separator.version
-          if ( $ionkit_version.StartsWith("v") ){ 
-            $ionkit_version = $ionkit_version.substring(1)
-          }
-          if ( $gendc_separator_version.StartsWith("v") ){ 
-            $gendc_separator_version = $gendc_separator_version.substring(1)
-          }
+          apt-get -y upgrade && apt-get update && apt-get install -y jq
+          config_file="${{ github.workspace }}/download/build/config_Linux.json"
+          ionkit_version=$(jq -r '.ion_kit.version' $config_file)
+          gendc_separator_version=$(jq -r '.gendc_separator.version' $config_file)
+          
+          if [[ $ionkit_version == v* ]]; then
+            ionkit_version=${ionkit_version:1}
+          fi
+          
+          if [[ $gendc_separator_version == v* ]]; then
+            gendc_separator_version=${gendc_separator_version:1}
+          fi
+          
           pip install ion-python==$ionkit_version
           pip install gendc-python==$gendc_separator_version
           pip install numpy
