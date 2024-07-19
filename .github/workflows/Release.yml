@@ -79,7 +79,7 @@ jobs:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: install-test-for-linux
+          name: test-cases
           path: download
 
       - name: Test Aravis installation and Path
@@ -136,7 +136,7 @@ jobs:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: install-test-for-windows
+          name: test-cases
           path: download
 
       - name: Check if version_info.json exists
