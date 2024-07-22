@@ -146,7 +146,12 @@ function InstallEarlierVersion(){
           $prevInstallerURL = "${baseUrl}${version}/installer.ps1"
           $prevInstallerPath = "$tempWorkDir/old_installer.ps1"
           Invoke-WebRequest -Uri $prevInstallerURL -OutFile $prevInstallerPath
-          & $prevInstallerPath -version:$sdkversion -InstallOpenCV:$InstallOpenCV -user:$Env:UserName
+          if ($InstallOpenCV){
+            & $prevInstallerPath -version:$sdkversion -InstallOpenCV -user:$Env:UserName
+          }else{
+            & $prevInstallerPath -version:$sdkversion -user:$Env:UserName
+          }
+          
           return $true
         } catch {
           Write-Error "Failed to download $sdkversion"
