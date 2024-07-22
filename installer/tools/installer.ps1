@@ -442,9 +442,10 @@ function Invoke-Script {
     Write-Host "Sensing-Dev $version will be installed." -ForegroundColor Green
     $installed = InstallEarlierVersion -sdkversion $version
     if ( $installed ){
+      # Exit here if earlier version is installed.
       Write-Host "Install successfully."
+      exit 0
     }
-    # Exit here if earlier version is installed.
 
     if (-not $configPath){
       try{
