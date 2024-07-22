@@ -130,7 +130,7 @@ function CheckSDKVersion(){
 function InstallEarlierVersion(){
   param(
     [string]$sdkversion,
-    [bool]$InstallOpenCV,
+    [bool]$withOpenCV,
     [string]$referenceVersion = "v24.05.99"
   )
 
@@ -146,7 +146,7 @@ function InstallEarlierVersion(){
           $prevInstallerURL = "${baseUrl}${version}/installer.ps1"
           $prevInstallerPath = "$tempWorkDir/old_installer.ps1"
           Invoke-WebRequest -Uri $prevInstallerURL -OutFile $prevInstallerPath
-          if ($InstallOpenCV){
+          if ($withOpenCV){
             & $prevInstallerPath -version:$sdkversion -InstallOpenCV -user:$Env:UserName
           }else{
             & $prevInstallerPath -version:$sdkversion -user:$Env:UserName
@@ -445,7 +445,7 @@ function Invoke-Script {
     }
     
     Write-Host "Sensing-Dev $version will be installed." -ForegroundColor Green
-    $installed = InstallEarlierVersion -sdkversion $version
+    $installed = InstallEarlierVersion -sdkversion $version -withOpenCV $InstallOpenCV
     if ( $installed ){
       # Exit here if earlier version is installed.
       Write-Host "Install successfully."
