@@ -87,6 +87,21 @@ get_latest_version() {
     sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
 }
 
+check_sdk_version() {
+    sdkversion=$1
+    verbose "Check if $sdkversion exists..."
+
+    url="https://github.com/$repositoryName/releases/tag/$sdkversion"
+    verbose "URL: $url"
+
+    if curl --output /dev/null--silent --head --fail "$url"; then
+      verbose "Valid version"
+    else
+      error "Version $sdkversion does not exist"
+      exit 1
+    fi
+}
+
 verbose "version: $version"
 verbose "user: $user"
 verbose "installPath: $installPath"
@@ -170,6 +185,8 @@ fi
 if [ -z "$version" ]; then
   verbose "Getting the latest version..."
   version=`get_latest_version $repositoryName`
+else
+  check_sdk_version $version 
 fi
 
 info "Sensing-Dev $version will be installed."
