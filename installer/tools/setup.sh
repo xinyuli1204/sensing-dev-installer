@@ -105,8 +105,8 @@ check_sdk_version() {
 install_eariler_version() {
   reference_version=240506
 
-  if [[ ! "$1" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-    echo "Invalid version format. Expected format is vXX.YY.ZZ"
+  if [[ ! "$1" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-[a-zA-Z0-9]*)?$ ]]; then
+    error "Invalid version format. Expected format is vXX.YY.ZZ or xXX.YY.ZZ-<testid>"
     exit 1
   fi
 
@@ -114,9 +114,8 @@ install_eariler_version() {
   version_minor="${BASH_REMATCH[2]}"
   version_patch="${BASH_REMATCH[3]}"
 
-  version_int=$((version_major * 10000 + version_minor * 100 + version_patch))
+  version_int=$((${version_major#0} * 10000 + ${version_minor#0} * 100 + ${version_patch#0}))
 
-  # バージョンを比較
   if [ "$version_int" -le "$reference_version" ]; then
     prev_installer_url="$baseUrl$1/setup.sh"
     prev_installer_path="$2/tmp/old_setup.sh"
@@ -125,10 +124,10 @@ install_eariler_version() {
     verbose "Execute old_setup.sh ($1) in $prev_installer_path"
     bash $prev_installer_path --install-opencv $3 --version $1
 
-    return 0
+    info "Install successfully."
+    exit 0
   fi
-  
-  return 1
+
 }
 
 verbose "version: $version"
@@ -219,11 +218,7 @@ else
 fi
 
 info "Sensing-Dev $version will be installed."
-installed= install_eariler_version $version $installPath $InstallOpenCV
-if [ -n $installed ]; then
-  info "Install successfully."
-  exit 0
-fi
+install_eariler_version $version $installPath $InstallOpenCV
 
 if [ -z "$configPath" ]; then
   info "Download SDK Component config file..."
