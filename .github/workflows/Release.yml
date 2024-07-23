@@ -186,7 +186,7 @@ jobs:
           cd Release && ls && ./opencv_test
 
       - name: Test opencv (-version v24.01.04)
-        if: ${{ matrix.version == '-version v24.01.04' }}
+        if: ${{ (matrix.version == '-version v24.01.04') && (matrix.with_openCV == '-InstallOpenCV')}}
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
