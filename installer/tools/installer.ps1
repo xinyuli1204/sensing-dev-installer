@@ -134,11 +134,20 @@ function InstallEarlierVersion(){
     [string]$referenceVersion = "v24.05.99"
   )
 
-  $versionToCheck = $sdkversion.TrimStart('v')
-  $referenceVersion = $referenceVersion.TrimStart('v')
+  try{
+    $versionToCheck = $sdkversion.TrimStart('v')
+    $referenceVersion = $referenceVersion.TrimStart('v')
+  } catch {
+    Write-Error "$sdkversion does not start with v"
+    exit 1
+  }
 
-  $versionParts = $versionToCheck.Split('.') | ForEach-Object { [int]$_ }
-  $referenceParts = $referenceVersion.Split('.') | ForEach-Object { [int]$_ }
+  try{
+    $versionParts = $versionToCheck.Split('.') | ForEach-Object { [int]$_ }
+    $referenceParts = $referenceVersion.Split('.') | ForEach-Object { [int]$_ }
+  } catch {
+    return $false
+  }
 
   for ($i = 0; $i -lt $versionParts.Length; $i++) {
       if ($versionParts[$i] -lt $referenceParts[$i]) {
