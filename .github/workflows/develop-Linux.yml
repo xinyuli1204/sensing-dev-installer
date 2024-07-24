@@ -38,7 +38,9 @@ jobs:
       - name: Get latest release tag
         id: get_latest_tag
         run: |
-          latest_tag=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          releases=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases)
+          latest_release=$(echo "$releases" | jq '[.[] | select(.prerelease == false)] | sort_by(.created_at) | last')
+          latest_tag=$(echo "$latest_release" | jq -r .tag_name)
           echo "LATEST_RELEASED_SDK=${latest_tag}" >> $GITHUB_OUTPUT
       - name: Set environment variables 
         id: set-vars
