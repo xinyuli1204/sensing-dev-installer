@@ -42,9 +42,8 @@ jobs:
       - name: Get latest release tag
         id: get_latest_tag
         run: |
-          $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases"
-          $latestRelease = $releases | Where-Object { $_.prerelease -eq $false } | Sort-Object -Property created_at -Descending | Select-Object -First 1
-          $latestTag = $latestRelease.tag_name
+          $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/latest"
+          $latestTag = $releases.tag_name
           echo "LATEST_RELEASED_SDK=$latestTag" >> $env:GITHUB_OUTPUT
 
       - name: Set environment variables 
