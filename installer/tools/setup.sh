@@ -103,7 +103,7 @@ check_sdk_version() {
 }
 
 install_eariler_version() {
-  reference_version=240506
+  reference_version=240599
 
   if [[ ! "$1" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-[a-zA-Z0-9]*)?$ ]]; then
     error "Invalid version format. Expected format is vXX.YY.ZZ or xXX.YY.ZZ-<testid>"
