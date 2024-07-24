@@ -27,6 +27,7 @@ env:
   TEST_CONFIG_VERSION_SDK: v99.99.99 
   LATEST_OPENCV_VERSION: 4.10.0
   LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
+  REPO_NAME: Sensing-Dev/sensing-dev-installer
 ################################################################################
 
 jobs:
@@ -42,7 +43,7 @@ jobs:
       - name: Get latest release tag
         id: get_latest_tag
         run: |
-          $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/latest"
+          $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ env.REPO_NAME}}/releases/latest"
           $latestTag = $releases.tag_name
           echo "LATEST_RELEASED_SDK=$latestTag" >> $env:GITHUB_OUTPUT
 

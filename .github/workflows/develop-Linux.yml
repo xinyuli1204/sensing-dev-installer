@@ -21,8 +21,7 @@ on:
 ### modify here for update #####################################################
 env: 
   TEST_CONFIG_VERSION_SDK: v99.99.99
-  LATEST_OPENCV_VERSION: 4.10.0
-  LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
+  REPO_NAME: Sensing-Dev/sensing-dev-installer
 ################################################################################
 
 jobs:
@@ -38,7 +37,7 @@ jobs:
       - name: Get latest release tag
         id: get_latest_tag
         run: |
-          latest_tag=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          latest_tag=$(curl -s https://api.github.com/repos/${{ env.REPO_NAME}}/releases/latest | jq -r .tag_name)
           echo "LATEST_RELEASED_SDK=${latest_tag}" >> $GITHUB_OUTPUT
       - name: Set environment variables 
         id: set-vars
