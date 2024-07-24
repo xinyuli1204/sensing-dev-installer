@@ -171,9 +171,6 @@ function InstallEarlierVersion(){
         return $false
       }
   }
-
-
-
 }
 
 
@@ -444,12 +441,11 @@ function Invoke-Script {
       } else{
         $version = $version_from_config
       }
-    }
-
-    # suggested installation (w/ or w/o version setting)
-    if (-not $version) {
+    } elseif (-not $version) {
+      # suggested installation (w/o version setting)
       $version = Get-LatestVersion
-    }else{
+    } else {
+      # suggested installation (w version setting)
       CheckSDKVersion -sdkversion $version
     }
     
@@ -481,7 +477,15 @@ function Invoke-Script {
     if (-not $uninstallerPath) {
       $uninstallerURL = "${baseUrl}${version}/$uninstallerFileName"
       $uninstallerPath = "$tempWorkDir/$uninstallerFileName"
-      Invoke-WebRequest -Uri $uninstallerURL -OutFile $uninstallerPath
+      try{
+        Invoke-WebRequest -Uri $uninstallerURL -OutFile $uninstallerPath
+      } catch {
+        Write-Verbose "version $version is not available online..."
+        Write-Verbose "DL uninstaller from v24.05.06 instead."
+        $uninstallerURL = "${baseUrl}v24.05.06/$uninstallerFileName"
+        Invoke-WebRequest -Uri $uninstallerURL -OutFile $uninstallerPath
+      }
+      
     } else {
       Write-Verbose "Found local $uninstallerFileName = $uninstallerPath"
       Copy-Item -Path $uninstallerPath -Destination (Join-Path $tempWorkDir $uninstallerFileName)
