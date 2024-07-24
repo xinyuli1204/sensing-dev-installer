@@ -208,12 +208,13 @@ if [ -n "$configPath" ]; then
   else
     version=$version_from_config
   fi
-fi
 
-if [ -z "$version" ]; then
+elif [ -z "$version" ]; then
+  # suggested installation (w/o version setting)
   verbose "Getting the latest version..."
   version=`get_latest_version $repositoryName`
 else
+  # suggested installation (w version setting)
   check_sdk_version $version 
 fi
 
