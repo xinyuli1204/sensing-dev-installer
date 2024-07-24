@@ -21,7 +21,6 @@ on:
 ### modify here for update #####################################################
 env: 
   TEST_CONFIG_VERSION_SDK: v99.99.99
-  LATEST_RELEASED_SDK: v24.05.06
   LATEST_OPENCV_VERSION: 4.10.0
   LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
 ################################################################################
@@ -30,10 +29,17 @@ jobs:
   set_env:
     runs-on: ubuntu-22.04
     outputs:
-      LATEST_RELEASED_SDK: ${{ steps.set-vars.outputs.LATEST_RELEASED_SDK }}
+      LATEST_RELEASED_SDK: ${{ steps.get_latest_tag.outputs.LATEST_RELEASED_SDK }}
       LATEST_OPENCV_VERSION: ${{ steps.set-vars.outputs.LATEST_OPENCV_VERSION }}
       LATEST_OPENCV_BIN_PATH: ${{ steps.set-vars.outputs.LATEST_OPENCV_BIN_PATH }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Get latest release tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          echo "LATEST_RELEASED_SDK=${latest_tag}" >> $GITHUB_OUTPUT
       - name: Set environment variables 
         id: set-vars
         run: |

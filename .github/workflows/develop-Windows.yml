@@ -25,7 +25,6 @@ on:
 ### modify here for update #####################################################
 env:
   TEST_CONFIG_VERSION_SDK: v99.99.99 
-  LATEST_RELEASED_SDK: v24.05.06
   LATEST_OPENCV_VERSION: 4.10.0
   LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
 ################################################################################
@@ -34,14 +33,21 @@ jobs:
   set_env:
     runs-on: windows-latest
     outputs:
-      LATEST_RELEASED_SDK: ${{ steps.set-vars.outputs.LATEST_RELEASED_SDK }}
+      LATEST_RELEASED_SDK: ${{ steps.get_latest_tag.outputs.LATEST_RELEASED_SDK }}
       LATEST_OPENCV_VERSION: ${{ steps.set-vars.outputs.LATEST_OPENCV_VERSION }}
       LATEST_OPENCV_BIN_PATH: ${{ steps.set-vars.outputs.LATEST_OPENCV_BIN_PATH }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Get latest release tag
+        id: get_latest_tag
+        run: |
+          $latestTag = (Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/latest").tag_name
+          echo "LATEST_RELEASED_SDK=$latestTag" >> $env:GITHUB_OUTPUT
+
       - name: Set environment variables 
         id: set-vars
         run: |
-          echo "LATEST_RELEASED_SDK=${{ env.LATEST_RELEASED_SDK}}" >> $env:GITHUB_OUTPUT
           echo "LATEST_OPENCV_VERSION=${{ env.LATEST_OPENCV_VERSION}}" >> $env:GITHUB_OUTPUT
           echo "LATEST_OPENCV_BIN_PATH=${{ env.LATEST_OPENCV_BIN_PATH}}" >> $env:GITHUB_OUTPUT
 
@@ -102,13 +108,13 @@ jobs:
           Move-Item -Path ${{ github.workspace }}/download/installer/tools/installer.ps1 -Destination ${{ github.workspace }}/test
 
       - name: Install with the script from Artifacts (general)
-        if: ${{ !((matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV') && (matrix.install_option == '-version v24.05.06'))}}
+        if: ${{ !((matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV') && (matrix.install_option == '-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}'))}}
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} -verbose
 
-      - name: Install with the script from Artifacts (with the latest MSVC with Sensing-Dev v24.05.06 or earlier)
-        if: ${{(matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV') && (matrix.install_option == '-version v24.05.06')}}
+      - name: Install with the script from Artifacts (with the latest MSVC with Sensing-Dev v24.05 or earlier)
+        if: ${{(matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV') && (matrix.install_option == '-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}')}}
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} -verbose
@@ -160,7 +166,7 @@ jobs:
           cd Release && ls && ./ionkit_test
 
       - name: Test opencv (general)
-        if: ${{ !((matrix.os == 'windows-latest') && (matrix.install_option == '-version v24.05.06')) && (matrix.with_openCV == '-InstallOpenCV')}}
+        if: ${{ !((matrix.os == 'windows-latest') && (matrix.install_option == '-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}')) && (matrix.with_openCV == '-InstallOpenCV')}}
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
@@ -171,7 +177,7 @@ jobs:
           cd Release && ./opencv_test
 
       - name: Test opencv (with the latest MSVC with OpenCV)
-        if: ${{(matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV') && (matrix.install_option == '-version v24.05.06')}}
+        if: ${{(matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV') && (matrix.install_option == '-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}')}}
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
