@@ -98,7 +98,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/test
           chmod +x setup.sh
-          sudo bash setup.sh ${{ matrix.install_option }} ${{ matrix.with_openCV }}
+          sudo bash setup.sh ${{ matrix.install_option }} ${{ matrix.with_openCV }} --verbose
 
       - name: Check if version_info.json exists
         id: check_version_info
