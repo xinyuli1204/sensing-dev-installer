@@ -110,13 +110,13 @@ jobs:
           Move-Item -Path ${{ github.workspace }}/download/installer/tools/installer.ps1 -Destination ${{ github.workspace }}/test
 
       - name: Install with the script from Artifacts (general)
-        if: ${{ !((matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV') && (matrix.install_option == '-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}'))}}
+        if: ${{ matrix.os != 'windows-latest' || matrix.with_openCV != '-InstallOpenCV' || matrix.install_option != format('-version {0}', needs.set_env.outputs.LATEST_RELEASED_SDK) }}
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} -verbose
 
       - name: Install with the script from Artifacts (with the latest MSVC with Sensing-Dev v24.05 or earlier)
-        if: ${{(matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV') && (matrix.install_option == '-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}')}}
+        if: ${{ matrix.os == 'windows-latest' && matrix.with_openCV == '-InstallOpenCV' && matrix.install_option == format('-version {0}', needs.set_env.outputs.LATEST_RELEASED_SDK) }}
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} -verbose
@@ -168,7 +168,7 @@ jobs:
           cd Release && ls && ./ionkit_test
 
       - name: Test opencv (general)
-        if: ${{ !((matrix.os == 'windows-latest') && (matrix.install_option == '-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}')) && (matrix.with_openCV == '-InstallOpenCV')}}
+        if: ${{ matrix.with_openCV == '-InstallOpenCV' && (matrix.os != 'windows-latest' || matrix.install_option != format('-version {0}', needs.set_env.outputs.LATEST_RELEASED_SDK)) }}
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
@@ -179,7 +179,7 @@ jobs:
           cd Release && ./opencv_test
 
       - name: Test opencv (with the latest MSVC with OpenCV)
-        if: ${{(matrix.os == 'windows-latest') && (matrix.with_openCV == '-InstallOpenCV') && (matrix.install_option == '-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}')}}
+        if: ${{ matrix.with_openCV == '-InstallOpenCV' && (matrix.os == 'windows-latest' && matrix.install_option == format('-version {0}', needs.set_env.outputs.LATEST_RELEASED_SDK)) }}
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
