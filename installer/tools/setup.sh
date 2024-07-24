@@ -122,7 +122,11 @@ install_eariler_version() {
     mkdir -p "$2/tmp"
     curl -L $prev_installer_url -o "$prev_installer_path"
     verbose "Execute old_setup.sh ($1) in $prev_installer_path"
-    bash $prev_installer_path --install-opencv $3 --version $1
+    if [ -n $3 ]; then
+      bash $prev_installer_path --version $1 --install-opencv
+    else 
+      bash $prev_installer_path --version $1
+    fi
 
     info "Install successfully."
     exit 0
