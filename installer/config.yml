@@ -1,21 +1,15 @@
 libraries:
   aravis:
     name: aravis
-    pkg_sha: "d593e1d3af223957d384288166f0cee0f5f3648f07a2b52e7149816c03cd2ebe"
+    pkg_sha: "7d540ed479514c74adeb2ccb8d0626bcf93077cdedb4f5f91640203054960fdc"
     git_repo: "https://github.com/Sensing-Dev/aravis.git"
     version: "v0.8.31"
 
   aravis_dep:
     name: aravis_dep
-    pkg_sha: "2b68d3d61da13aaf3af9897f2b205c2a93ebe3ff49dc757a95265bb656cd2d97"
+    pkg_sha: "ceb7685e8e9c46be7fc1791ce5be66513e2aa45eb2920164e1eb4c84dbe0eba7"
     git_repo: "" # use recipe here for appropriate version
     version: "v0.8.31"
-
-  pygobject:
-    name: pygobject
-    pkg_sha: "eea9465b7cbf1420ee3b3d8a78f6cfa3feeff89ffade7ab1874ebb25d7078037"
-    git_repo: "https://gitlab.gnome.org/GNOME/pygobject.git"
-    version: "3.42.2"
 
   ion_kit:
     name: ion-kit
