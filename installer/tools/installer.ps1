@@ -517,7 +517,19 @@ function Invoke-Script {
         }
     
         CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
-        Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath 
+        Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath/$compName
+
+        if ($key -eq "aravis"){
+          MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath $tempInstallPath
+        }elseif ($key -eq "aravis_dep"){
+          MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath "$tempInstallPath/bin"
+        }elseif ($key -eq "ion_kit"){
+          $version_without_v = $compVersion.Substring(1)
+          $dir_name = "ion-kit-$version_without_v-x86-64-windows"
+          MergeComponents -CompDirName $tempExtractionPath/$compName/$dir_name -tempInstallPath "$tempInstallPath"
+        }elseif ($key -eq "gendc_separator"){
+          MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath "$tempInstallPath/include/gendc_separator"
+        }
 
       } else {
         throw "Component $key does not exist in $configFileName"
@@ -528,23 +540,7 @@ function Invoke-Script {
         Remove-Item -Force $archiveName
       }
     }
-      
-
-
-    Get-ChildItem $tempExtractionPath -Directory |
-    Foreach-Object {
-      $CompDirName = $_.FullName
-
-      if ($_.Name -eq "gendc_separator"){
-        # GenDC Separator is a header library.
-        # Move all contents under gendc_separator to under $tempInstallPath/include/gendc_separator 
-        MergeComponents -CompDirName $CompDirName -tempInstallPath "$tempInstallPath/include/gendc_separator"
-      }else{
-        # Move all contents under $CompDirName to under $tempInstallPath
-        MergeComponents -CompDirName $CompDirName -tempInstallPath $tempInstallPath
-      }  
-      
-    }
+    
 
     ################################################################################
     # Dlownload OpenCV to $tempWorkDir & extract to $tempExtractionPath
