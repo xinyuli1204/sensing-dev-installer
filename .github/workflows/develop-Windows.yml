@@ -241,11 +241,12 @@ jobs:
           pip install gendc-python==$gendc_separator_version
           pip install numpy
           pip install opencv-python
-
-      # - name: Test Aravis
-      #   run: |
-      #     cd ${{ github.workspace }}/download/installer/testcases/python
-      #     python aravis_test.py
+          pip install aravis-python
+          
+      - name: Test Aravis
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python aravis_test.py
 
       - name: Test ion-kit
         run: |

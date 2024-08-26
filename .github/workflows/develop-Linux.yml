@@ -184,12 +184,12 @@ jobs:
           pip install gendc-python==$gendc_separator_version
           pip install numpy
           pip install opencv-python
+          pip install aravis-python
 
-      # - name: Test Aravis
-      #   run: |
-      #     export GI_TYPELIB_PATH=/opt/sensing-dev/lib/x86_64-linux-gnu/girepository-1.0:$GI_TYPELIB_PATH
-      #     cd ${{ github.workspace }}/download/installer/testcases/python
-      #     python aravis_test.py
+      - name: Test Aravis
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python aravis_test.py
 
       - name: Test ion-kit
         run: |
