@@ -265,7 +265,7 @@ jobs:
           python opencv_test.py
 
       - name: Install pygobject
-        run: .\pygobject_install
+        run: .\installer/tools/pygobject_installer
 
       - name: Test Aravis
         run: |
