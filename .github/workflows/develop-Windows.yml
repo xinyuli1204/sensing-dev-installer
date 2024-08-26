@@ -147,6 +147,19 @@ jobs:
             exit 1
           }
 
+      - name: Check if arv.h exists
+        run: |
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+          $include_dir = Join-Path -Path "$SENSING_DEV_ROOT" -ChildPath "include"
+          $arv_inc_dir = Join-Path -Path "$include_dir" -ChildPath "aravis-0.8"
+          $target_file = Join-Path -Path "$arv_inc_dir" -ChildPath "arv.h"
+          if (Test-Path $target_file){
+            echo "arv.h exists."
+          } else{
+            echo "arv.h does not exist."
+            exit 1
+          }
+
       - name: Test Aravis installation and Path
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
@@ -228,6 +241,7 @@ jobs:
           pip install gendc-python==$gendc_separator_version
           pip install numpy
           pip install opencv-python
+          pip install aravis-python
 
       # - name: Test Aravis
       #   run: |
