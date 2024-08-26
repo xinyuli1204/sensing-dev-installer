@@ -517,16 +517,16 @@ function Invoke-Script {
         }
     
         CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
-        Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath/$compName
+        Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath
 
         if ($key -eq "aravis"){
           MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath $tempInstallPath
         }elseif ($key -eq "aravis_dep"){
-          MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath "$tempInstallPath/bin"
+          MergeComponents -CompDirName "$tempExtractionPath/aravis_dependencies" -tempInstallPath $tempInstallPath
         }elseif ($key -eq "ion_kit"){
           $version_without_v = $compVersion.Substring(1)
           $dir_name = "ion-kit-$version_without_v-x86-64-windows"
-          MergeComponents -CompDirName $tempExtractionPath/$compName/$dir_name -tempInstallPath "$tempInstallPath"
+          MergeComponents -CompDirName $tempExtractionPath/$dir_name -tempInstallPath $tempInstallPath
         }elseif ($key -eq "gendc_separator"){
           MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath "$tempInstallPath/include/gendc_separator"
         }
