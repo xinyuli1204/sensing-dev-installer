@@ -249,12 +249,7 @@ do
   echo "**********"
   echo "Install $comp_name=$comp_version"
   echo "**********"
-  if [ $key == 'gendc_separator' ]; then
-    archive_name="gendc_separator.zip"
-    curl -L $comp_url -o $archive_name && unzip -o gendc_separator.zip -d $installPath/include && rm $archive_name
-  else
-    curl -L $comp_url | tar zx -C $installPath --strip-components 1
-  fi
+  curl -L $comp_url | tar zx -C $installPath --strip-components 1
 done
 
 if [ -n "$InstallOpenCV" ]; then

@@ -97,8 +97,13 @@ def generate_url(cmp, version, pf):
             print('Platform', pf, 'is not supported.')
             sys.exit(1)
     elif cmp == 'gendc_separator':
-        if pf == 'Windows' or pf =='Linux':
-            url = 'https://github.com/Sensing-Dev/GenDC/releases/download/' + version + '/gendc_separator_' + version + '_win64.zip'
+        if pf == 'Windows':
+            url = 'https://github.com/Sensing-Dev/GenDC/releases/download/' + version + '/gendc-' + version + '-win64.zip'
+        elif pf =='Linux':
+            url = 'https://github.com/Sensing-Dev/GenDC/releases/download/' + version + '/gendc-' + version + '-linux.tar.gz'
+        else:
+            print('Platform', pf, 'is not supported.')
+            sys.exit(1)
     else:
         print(cmp, 'is not supported')
         sys.exit(1)
@@ -170,6 +175,7 @@ if __name__ == '__main__':
                 'version' : version
             }
 
+            print("\tgenerate ", os.path.join(dst_dir, 'config_' + pf+ '.json'))
             with open(os.path.join(dst_dir, 'config_' + pf+ '.json'), 'w', encoding='utf-8') as f:
                 json.dump(out, f, indent=4)
 

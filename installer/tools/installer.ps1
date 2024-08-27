@@ -224,10 +224,20 @@ function MergeComponents(){
       New-Item -ItemType Directory -Path "$dstDir" | Out-Null
     }
     try{
-      Get-ChildItem $srcDir -Recurse| 
+      Get-ChildItem $srcDir -Directory| 
       Foreach-Object {
+        # Recursively call MergeComponents instead of Move-Item
+        MergeComponents -CompDirName (Join-Path $srcDir $_) -tempInstallPath (Join-Path $dstDir $_)
+        # Move-Item -Force -Path (Join-Path $srcDir $_) -Destination (Join-Path $dstDir $_)
+      }
+
+      Get-ChildItem $srcDir -File| 
+      Foreach-Object {
+        # Recursively call MergeComponents instead of Move-Item
+        # MergeComponents -CompDirName (Join-Path $srcDir $_) -tempInstallPath (Join-Path $dstDir $_)
         Move-Item -Force -Path (Join-Path $srcDir $_) -Destination (Join-Path $dstDir $_)
       }
+
     } catch {
       throw "Failed to copy the content of $_"
       exit 1
@@ -528,7 +538,7 @@ function Invoke-Script {
           $dir_name = "ion-kit-$version_without_v-x86-64-windows"
           MergeComponents -CompDirName $tempExtractionPath/$dir_name -tempInstallPath $tempInstallPath
         }elseif ($key -eq "gendc_separator"){
-          MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath "$tempInstallPath/include/gendc_separator"
+          MergeComponents -CompDirName "$tempExtractionPath/gendc" -tempInstallPath $tempInstallPath
         }
 
       } else {
