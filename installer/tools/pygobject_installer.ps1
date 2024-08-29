@@ -34,11 +34,14 @@ Write-Output "Added $pkgconfigDirectory to PATH for the current session"
 # Install gobject-introspection using vcpkg
 Write-Output "Installing gobject-introspection..."
 
-curl https://github.com/Sensing-Dev/aravis/releases/download/v0.8.31/PyGObject-1.72.0-dependencies.zip -o $CacheDIR/dependency.zip
-Expand-Archive -Path $CacheDIR/dependency.zip -DestinationPath $CacheDIR/
-rm $CacheDIR/dependency.zip
 
-$PkgConfigPath = "$CacheDIR\pygobject_dependencies\lib\pkgconfig"
+Invoke-WebRequest -Uri https://github.com/Sensing-Dev/aravis/releases/download/v0.8.31/PyGObject-1.72.0-dependencies.zip  -OutFile $CacheDIR\dependency.zip
+Write-Output "unzip..."
+Expand-Archive -Path $CacheDIR\dependency.zip -DestinationPath $CacheDIR\dependency
+Write-Output "remove..."
+rm $CacheDIR\dependency.zip
+
+$PkgConfigPath = "$CacheDIR\dependency\pygobject_dependencies\lib\pkgconfig"
 # Set the PKG_CONFIG_PATH environment variable for the current session
 Write-Output "Setting PKG_CONFIG_PATH to aravis-python-dependency for the current session"
 $Env:PKG_CONFIG_PATH = $PkgConfigPath
@@ -48,8 +51,8 @@ Write-Output "Installing pygobject from Git repository..."
 pip install --config-settings=setup-args="-Dtests=false" git+https://gitlab.gnome.org/GNOME/pygobject.git
 
 # Delete the vcpkg directory recursively
-Remove-Item -Path "$CacheDIR/dependency" -Recurse -Force
-Write-Output "Please wait cache vcpkg_installed directory to be deleted: "$CacheDIR/dependency" ..."
+Remove-Item -Path "$CacheDIR\dependency" -Recurse -Force
+Write-Output "Please wait cache vcpkg_installed directory to be deleted: "$CacheDIR\dependency" ..."
 
 
 # Unset the PKG_CONFIG_PATH environment variable
