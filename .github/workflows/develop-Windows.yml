@@ -211,7 +211,7 @@ jobs:
     needs: [set_env, generate_config]
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [windows-2019, windows-latest]
         python_version: ["3.10", "3.11"]
 
     steps:
