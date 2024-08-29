@@ -1,13 +1,13 @@
 param (
-    [string]$cachePath
+    [string]$CacheDIR
 )
 
-$defaultcachePath="C:\pygobject_cache"
+$defaultCacheDIR="C:\PyGObjectCache"
 
-# Validate if the provided cachePath parameter is empty
-if (-not $cachePath) {
-    Write-Output "Using default cache path: $defaultcachePath"
-    $cachePath = $defaultcachePath
+# Validate if the provided CacheDIR parameter is empty
+if (-not $CacheDIR) {
+    Write-Output "Using default cache path: $defaultCacheDIR"
+    $CacheDIR = $defaultCacheDIR
 }
 
 # Define the application ID for pkg-config-lite
@@ -25,53 +25,35 @@ if ($installedPackage) {
 Write-Output "Installing $pkgConfigLiteAppId..."
 
 # Define the directory you want to remove from PATH
-$pkgconfigDirectory = "$cachePath\pkg-config-lite-0.28-1\bin"
-
-winget install --accept-source-agreements --accept-package-agreements --id $pkgConfigLiteAppId  --location $cachePath
+$pkgconfigDirectory = "$CacheDIR\pkg-config-lite-0.28-1\bin"
+winget install --accept-source-agreements --accept-package-agreements --id $pkgConfigLiteAppId  --location $CacheDIR
 
 $env:PATH += ";$pkgconfigDirectory"
 Write-Output "Added $pkgconfigDirectory to PATH for the current session"
 
-# Get latest vcpkg.exe
-$vcpkgRoot = "C:\vcpkg"
-$vcpkgExe = "$vcpkgRoot\vcpkg.exe"
-# Check if vcpkg is already installed
-if (-Not (Test-Path -Path "$vcpkgRoot\vcpkg.exe")) {
-    Write-Output "Downloading and installing vcpkg..."
-    # Clone the latest vcpkg repository
-    git clone https://github.com/microsoft/vcpkg.git $vcpkgRoot
-    # Bootstrap vcpkg
-    & "$vcpkgRoot\bootstrap-vcpkg.bat"
-}
-
 # Install gobject-introspection using vcpkg
 Write-Output "Installing gobject-introspection..."
 
-& $vcpkgExe install gobject-introspection --x-install-root "$cachePath\vcpkg_installed"
+curl https://github.com/Sensing-Dev/aravis/releases/download/v0.8.31/PyGObject-1.72.0-dependencies.zip -o $CacheDIR/dependency.zip
+Expand-Archive -Path $CacheDIR/dependency.zip -DestinationPath $CacheDIR/
+rm $CacheDIR/dependency.zip
 
-# Get the path to the vcpkg installed pkgconfig directory
-$vcpkgPkgConfigPath = "$cachePath\vcpkg_installed\x64-windows\lib\pkgconfig"
-
+$PkgConfigPath = "$CacheDIR\pygobject_dependencies\lib\pkgconfig"
 # Set the PKG_CONFIG_PATH environment variable for the current session
-Write-Output "Setting PKG_CONFIG_PATH to $vcpkgPkgConfigPath for the current session"
-$Env:PKG_CONFIG_PATH = $vcpkgPkgConfigPath
+Write-Output "Setting PKG_CONFIG_PATH to aravis-python-dependency for the current session"
+$Env:PKG_CONFIG_PATH = $PkgConfigPath
 
 # Install pygobject from the Git repository with specific configuration settings
 Write-Output "Installing pygobject from Git repository..."
 pip install --config-settings=setup-args="-Dtests=false" git+https://gitlab.gnome.org/GNOME/pygobject.git
 
+# Delete the vcpkg directory recursively
+Remove-Item -Path "$CacheDIR/dependency" -Recurse -Force
+Write-Output "Please wait cache vcpkg_installed directory to be deleted: "$CacheDIR/dependency" ..."
 
-# Check if the vcpkg directory exists
-if (Test-Path -Path $cachePath) {
-    # Delete the vcpkg directory recursively
-    Remove-Item -Path "$cachePath\vcpkg_installed" -Recurse -Force
-    Write-Output "Please wait cache vcpkg_installed directory to be deleted: "$cachePath\vcpkg_installed" ..."
-} else {
-    Write-Output "cache vcpkg_installed directory not found at:"$cachePath\vcpkg_installed""
-}
 
 # Unset the PKG_CONFIG_PATH environment variable
 Remove-Item Env:\PKG_CONFIG_PATH
 Write-Output "Removed PKG_CONFIG_PATH environment variable"
 
-Write-Output "$path Script completed."
+Write-Output "Script completed."
