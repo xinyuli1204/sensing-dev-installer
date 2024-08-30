@@ -167,7 +167,7 @@ jobs:
 
       - name: Get config content and install python modules
         run: | 
-          apt-get -y upgrade && apt-get update && apt-get install -y jq libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0
+          apt-get -y upgrade && apt-get update && apt-get install -y jq 
           config_file="${{ github.workspace }}/download/build/config_Linux.json"
           ionkit_version=$(jq -r '.ion_kit.version' $config_file)
           gendc_separator_version=$(jq -r '.gendc_separator.version' $config_file)
@@ -184,6 +184,7 @@ jobs:
           pip install gendc-python==$gendc_separator_version
           pip install numpy
           pip install opencv-python
+          sudo apt install -y libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0
           pip install aravis-python
           pip3 install pycairo
           pip3 install PyGObject
