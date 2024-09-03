@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(SENSING_DEV_DIR $ENV{SENSING_DEV_ROOT})
 
-if(DEFINED SDK_VERSION AND SDK_VERSION STREQUAL "v24.01")
+if(DEFINED SDK_VERSION AND SDK_VERSION MATCHES "v24.01")
     message(STATUS "CMake looks for OpenCV in the old version")
 
     include_directories(${SENSING_DEV_DIR}/include)
