@@ -177,7 +177,7 @@ jobs:
       - name: Test opencv (general)
         if: ${{ (matrix.os == 'windows-2019') && (matrix.with_openCV == '-InstallOpenCV')}}
         run: |
-          $sensingdevShortVersion = ${{ matrix.version }} -replace '^v(\d+\.\d+)\.\d+$', 'v$1'
+          $sensingdevShortVersion = '${{ matrix.version }}' -replace '^v(\d+\.\d+)\.\d+$', 'v$1'
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
           $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT} 
