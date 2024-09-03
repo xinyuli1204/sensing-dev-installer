@@ -182,6 +182,6 @@ jobs:
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
           $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT} 
           $env:PATH="$env:PATH;$PATH"
-          cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test && cmake ./ -DSDK_VERSION=$sensingdevShortVersion
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test && cmake ./ -DSDK_VERSION="$sensingdevShortVersion"
           cmake --build . --config Release 
           cd Release && ls && ./opencv_test
