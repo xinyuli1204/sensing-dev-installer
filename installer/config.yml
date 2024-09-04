@@ -13,9 +13,9 @@ libraries:
 
   ion_kit:
     name: ion-kit
-    pkg_sha: "edb523794467cd737833032db3965a3960f2ca58f195635bb347683400152641"
+    pkg_sha: "d0e6c2b19a21a695fa175f95a6b1d3fa47c42600ac9331b31773f327158bc1ab"
     git_repo: "https://github.com/fixstars/ion-kit.git"
-    version: "v3.1.0"
+    version: "v3.2.0"
 
   opencv:
     name: opencv
