@@ -2,7 +2,11 @@ param (
     [string]$CacheDIR
 )
 
-$defaultCacheDIR=Join-Path -Path "$env:TEMP" -ChildPath "PyGObjectCache" 
+$defaultCacheDIR = Join-Path -Path "$env:TEMP" -ChildPath "PyGObjectCache" 
+
+if (Test-Path $defaultCacheDIR) {
+    Remove-Item -Path $defaultCacheDIR -Force -Recurse
+}
 
 # Validate if the provided CacheDIR parameter is empty
 if (-not $CacheDIR) {
