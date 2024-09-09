@@ -34,7 +34,7 @@ try {
         winget uninstall --id $pkgConfigLiteAppId --accept-source-agreements
     }
 } catch {
-    Write-Error "Failed to check/uninstall existing pkg-config-lite."
+    Write-Error "Failed to check/uninstall existing pkg-config-lite: $_"
     exit 1
 }
 
@@ -45,7 +45,7 @@ try {
     $pkgconfigDirectory = "$CacheDIR\pkg-config-lite-0.28-1\bin"
     winget install --accept-source-agreements --accept-package-agreements --id $pkgConfigLiteAppId  --location $CacheDIR
 } catch {
-    Write-Error "Failed to install pkg-config-lite."
+    Write-Error "Failed to install pkg-config-lite: $_"
     exit 1
 }
 
@@ -60,7 +60,7 @@ try {
     Expand-Archive -Path $CacheDIR\dependency.zip -DestinationPath $CacheDIR\dependency
     Remove-Item -Force $CacheDIR\dependency.zip
 } catch {
-    Write-Error "Failed to DL/extract gobject-introspection."
+    Write-Error "Failed to DL/extract gobject-introspection: $_"
     exit 1
 }
 
@@ -74,8 +74,7 @@ Write-Output "Installing pygobject from Git repository..."
 try {
     pip install --config-settings=setup-args="-Dtests=false" git+https://gitlab.gnome.org/GNOME/pygobject.git
 } catch {
-    Write-Host $_
-    Write-Error "Failed to install gobject-introspection."
+    Write-Error "Failed to install gobject-introspection: $_"
     exit 1
 }
 
@@ -84,7 +83,7 @@ Write-Output "Deleting cache directory: "$CacheDIR" ..."
 try {
     Remove-Item -Path "$CacheDIR" -Recurse -Force
 } catch {
-    Write-Error "Failed to remove vcpkg directory."
+    Write-Error "Failed to remove vcpkg directory: $_"
     exit 1
 }
 
