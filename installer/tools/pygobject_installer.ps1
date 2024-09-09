@@ -2,7 +2,7 @@ param (
     [string]$CacheDIR
 )
 
-$defaultCacheDIR="C:\PyGObjectCache"
+$defaultCacheDIR=Join-Path -Path "$env:TEMP" -ChildPath "PyGObjectCache" 
 
 # Validate if the provided CacheDIR parameter is empty
 if (-not $CacheDIR) {
