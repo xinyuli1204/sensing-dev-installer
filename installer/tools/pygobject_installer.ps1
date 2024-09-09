@@ -2,6 +2,15 @@ param (
     [string]$CacheDIR
 )
 
+$pipExists = Get-Command pip -ErrorAction SilentlyContinue
+
+if ($pipExists){
+    Write-Host "pip exists"
+} else {
+    Write-Error "pip not found; please install it to run this script"
+    exit 1
+}
+
 $defaultCacheDIR = Join-Path -Path "$env:TEMP" -ChildPath "PyGObjectCache" 
 
 if (Test-Path $defaultCacheDIR) {
@@ -65,6 +74,7 @@ Write-Output "Installing pygobject from Git repository..."
 try {
     pip install --config-settings=setup-args="-Dtests=false" git+https://gitlab.gnome.org/GNOME/pygobject.git
 } catch {
+    Write-Host $_
     Write-Error "Failed to install gobject-introspection."
     exit 1
 }
