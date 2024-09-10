@@ -5,7 +5,7 @@ param (
 $pipExists = Get-Command pip -ErrorAction SilentlyContinue
 
 if ($pipExists){
-    Write-Host "pip exists"
+    Write-Host "pip found; continue..."
 } else {
     Write-Error "pip not found; please install it to run this script"
     exit 1
@@ -70,11 +70,11 @@ Write-Output "Setting PKG_CONFIG_PATH to "$PkgConfigPath" for the current sessio
 $Env:PKG_CONFIG_PATH = $PkgConfigPath
 
 # Install pygobject from the Git repository with specific configuration settings
-Write-Output "Installing pygobject from Git repository..."
+Write-Output "Installing pygobject"
 try {
-    pip install --config-settings=setup-args="-Dtests=false" git+https://gitlab.gnome.org/GNOME/pygobject.git
+    pip install pygobject==3.48.2
 } catch {
-    Write-Error "Failed to install gobject-introspection: $_"
+    Write-Error "Failed to install pygobject: $_"
     exit 1
 }
 
