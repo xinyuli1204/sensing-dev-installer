@@ -34,7 +34,7 @@ jobs:
           python ${GITHUB_WORKSPACE}/installer/scripts/get_component_version.py ${GITHUB_WORKSPACE}/installer/config.yml ${GITHUB_WORKSPACE}/build/version_info.json
 
       - name: Upload version_info.json
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: version_info.json
           path: build/version_info.json
