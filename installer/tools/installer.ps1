@@ -193,15 +193,15 @@ function CheckComponentHash(){
         if ($computedHash -eq $expectedHash) {
             Write-Output "The component $compName has been downloaded successfully and the hash matches."
         } else {
-            throw "The hash of the downloaded $compName does not match the expected hash."
-            exit 1
+          Write-Error "The hash of the downloaded $compName does not match the expected hash."
+          exit 1
         }
     } catch {
-        throw "Failed to compute or compare the hash of the downloaded $compName."
-        exit 1
+      Write-Error "Failed to compute or compare the hash of the downloaded $compName."
+      exit 1
     }
   } else {
-    throw "The component $compName was not downloaded."
+    Write-Error "The component $compName was not downloaded."
     exit 1
   }
 }
@@ -239,7 +239,7 @@ function MergeComponents(){
       }
 
     } catch {
-      throw "Failed to copy the content of $_"
+      Write-Error "Failed to copy the content of $_. Please run the script again."
       exit 1
     }
   }
@@ -252,7 +252,7 @@ function MergeComponents(){
     try{
       Move-Item -Force -Path (Join-Path $CompDirName $_) -Destination $tempInstallPath
     } catch {
-      throw "Failed to copy the content of $_"
+      Write-Error "Failed to copy the content of $_. Please run the script again."
       exit 1
     }
   }
@@ -378,14 +378,60 @@ function Get-ConfigContent{
       $content = Get-Content -Path $configPath -Raw | ConvertFrom-Json
       Write-Verbose "The config file $configPath a valid JSON."
     } catch {
-      throw  "The confg file $configPath is not a valid JSON."
+      Write-Error "The confg file $configPath is not a valid JSON."
       exit 1
     }
   } else {
-    throw  "The config file $configPath was not downloaded."
+    Write-Error  "The config file $configPath was not downloaded."
     exit 1
   }
   return $content
+}
+
+
+
+
+function Get-FileLockStatus {
+  param(
+    [string]$directoryPath
+  )
+  $fileLocked = $false
+
+  if (Test-Path $directoryPath) {
+
+
+    Get-ChildItem $directoryPath -Directory| 
+      Foreach-Object {
+        $ret = Get-FileLockStatus -directoryPath (Join-Path $directoryPath $_)
+        $fileLocked = $fileLocked -or $ret
+        if ($fileLocked){
+          return $fileLocked
+        }
+      }
+
+      Get-ChildItem $directoryPath -File| 
+      Foreach-Object {
+        $fullTargetPath = Join-Path $directoryPath $_
+        try {
+          $fileStream = [System.IO.File]::Open($fullTargetPath, 'Open', 'ReadWrite', 'None')
+        } catch {
+          $fileLocked = $true
+          if ($fileLocked){
+            Write-Host "$fullTargetPath is currently used in another process."
+            return $fileLocked
+          }
+        } finally {
+          if ($null -ne $fileStream) {
+              $fileStream.Close()
+          }
+        }
+      }
+      return $fileLocked
+    
+  } else {
+    return $false
+  }
+
 }
 
 
@@ -410,6 +456,11 @@ function Invoke-Script {
       $installPath = "$env:LOCALAPPDATA"
     }
     Write-Verbose "installPath = $installPath"
+
+    if (Get-FileLockStatus -directoryPath "$installPath\sensing-dev"){
+      Write-Error "Sensing-Dev is used in another process. Please terminate it before running this script."
+      exit 1
+    }
 
     ################################################################################
     # Get Working Directory
@@ -529,6 +580,8 @@ function Invoke-Script {
         CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
         Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath
 
+        Start-Sleep -Seconds 5
+
         if ($key -eq "aravis"){
           MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath $tempInstallPath
         }elseif ($key -eq "aravis_dep"){
@@ -542,7 +595,7 @@ function Invoke-Script {
         }
 
       } else {
-        throw "Component $key does not exist in $configFileName"
+        Write-Error "Component $key does not exist in $configFileName"
         exit 1
       }
 
