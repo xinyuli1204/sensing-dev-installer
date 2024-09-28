@@ -2,6 +2,9 @@ param (
     [string]$CacheDIR
 )
 
+$currentPath = $env:PATH
+
+
 $pipExists = Get-Command pip -ErrorAction SilentlyContinue
 
 if ($pipExists){
@@ -49,7 +52,7 @@ try {
     exit 1
 }
 
-$env:PATH += ";$pkgconfigDirectory"
+$env:PATH = "$env:PATH;$pkgconfigDirectory"
 Write-Output "Added $pkgconfigDirectory to PATH for the current session"
 
 # Install gobject-introspection using vcpkg
@@ -91,5 +94,17 @@ try {
 Write-Output "Removing PKG_CONFIG_PATH environment variable"
 Remove-Item Env:\PKG_CONFIG_PATH
 
+try{
+    [Environment]::SetEnvironmentVariable("Path", $currentPath, "User")
+    Write-Output "Removing $pkgconfigDirectory from PATH"
+} catch {
+    Write-Error "Successfully installed PyGObject but failed to remove tentative PATH"
+}
 
 Write-Output "Script completed."
+
+
+
+
+
+
