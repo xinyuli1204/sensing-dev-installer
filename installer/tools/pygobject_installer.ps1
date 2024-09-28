@@ -2,7 +2,7 @@ param (
     [string]$CacheDIR
 )
 
-$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+$currentPath = $env:PATH
 
 
 $pipExists = Get-Command pip -ErrorAction SilentlyContinue
@@ -52,7 +52,7 @@ try {
     exit 1
 }
 
-[Environment]::SetEnvironmentVariable("Path", "$currentPath;$pkgconfigDirectory", "User")
+$env:PATH = "$env:PATH;$pkgconfigDirectory"
 Write-Output "Added $pkgconfigDirectory to PATH for the current session"
 
 # Install gobject-introspection using vcpkg
