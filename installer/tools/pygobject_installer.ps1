@@ -2,8 +2,8 @@ param (
     [string]$CacheDIR
 )
 
-$currentPath = $env:PATH
-
+# saving PATH before pkg-config installation
+$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 
 $pipExists = Get-Command pip -ErrorAction SilentlyContinue
 
@@ -52,6 +52,7 @@ try {
     exit 1
 }
 
+# this environment variable update affects only in this session
 $env:PATH = "$env:PATH;$pkgconfigDirectory"
 Write-Output "Added $pkgconfigDirectory to PATH for the current session"
 
@@ -95,10 +96,12 @@ Write-Output "Removing PKG_CONFIG_PATH environment variable"
 Remove-Item Env:\PKG_CONFIG_PATH
 
 try{
+    Write-Output "Uninstalling $pkgConfigLiteAppId..."
+    winget uninstall --id $pkgConfigLiteAppId --accept-source-agreements
+    Write-Output "Clean up environment variable PATH..."
     [Environment]::SetEnvironmentVariable("Path", $currentPath, "User")
-    Write-Output "Removing $pkgconfigDirectory from PATH"
 } catch {
-    Write-Error "Successfully installed PyGObject but failed to remove tentative PATH"
+    Write-Error "Successfully installed PyGObject but failed to uninstall pkg-config"
 }
 
 Write-Output "Script completed."
