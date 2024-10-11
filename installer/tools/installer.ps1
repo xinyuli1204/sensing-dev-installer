@@ -325,7 +325,7 @@ function Set-EnvironmentVariables {
     [Environment]::SetEnvironmentVariable("SENSING_DEV_ROOT", $SensingDevRoot, "User")
     Write-Host "Updated SENSING_DEV_ROOT: $SensingDevRoot"
 
-    $gstLibPath = "$SensingDevRoot\lib\girepository-1.0"
+    $gstLibPath = "$SensingDevRoot\lib\gstreamer-1.0"
     [Environment]::SetEnvironmentVariable("GST_PLUGIN_PATH", $gstLibPath, "User")
     Write-Host "Updated GST_PLUGIN_PATH: $gstLibPath"
   }
