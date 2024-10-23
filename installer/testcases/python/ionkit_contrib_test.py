@@ -3,13 +3,6 @@ import os
 import sys
 import numpy as np
 
-try:
-    os.environ["GENICAM_FILENAME"] = sys.argv[1]
-except Exception as err:
-    print(err)
-    print('Download {} and run python {} <file path>'.format('https://github.com/AravisProject/aravis/blob/main/src/arv-fake-camera.xml', os.path.basename(__file__)))
-    sys.exit(1)
-
 builder = Builder()
 builder.set_target(target='host')
 builder.with_bb_module(path='ion-bb')

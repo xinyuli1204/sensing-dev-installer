@@ -260,6 +260,7 @@ jobs:
       - name: Test ion-kit with Aravis
         run: |
           cd ${{ github.workspace }}/download/installer/testcases/python
+          $ENV:GENICAM_FILENAME = "${{ github.workspace }}/download/installer/testcases/python/arv-fake-camera.xml"
           python ionkit_contrib_test.py ${{ github.workspace }}/download/installer/testcases/python/ionkit_contrib_test.py
 
       - name: Test OpenCV
