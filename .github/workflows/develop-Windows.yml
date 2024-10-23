@@ -261,6 +261,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/download/installer/testcases/python
           $ENV:GENICAM_FILENAME = "${{ github.workspace }}/download/installer/testcases/python/arv-fake-camera.xml"
+          $ENV:ION_LOG_LEVEL = "trace"
           python ionkit_contrib_test.py ${{ github.workspace }}/download/installer/testcases/python/ionkit_contrib_test.py
 
       - name: Test OpenCV
