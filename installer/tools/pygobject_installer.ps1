@@ -24,10 +24,13 @@ if (Test-Path $defaultCacheDIR) {
 if (-not $CacheDIR) {
     Write-Output "Using default cache path: $defaultCacheDIR"
     $CacheDIR = $defaultCacheDIR
+    New-Item -Path "$env:TEMP" -Name "PyGObjectCache" -ItemType "directory"
 }
 
 # Define the application ID for pkg-config-lite
 $pkgConfigLiteAppId = "bloodrock.pkg-config-lite"
+
+$pkgConfigURL = "https://sourceforge.net/projects/pkgconfiglite/files/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip/download"
 
 # Check if pkg-config-lite is already installed using winget
 try {
@@ -42,11 +45,12 @@ try {
 }
 
 # Install pkg-config-lite using winget
-Write-Output "Installing $pkgConfigLiteAppId..."
+Write-Output "Installing pkgConfig..."
 try {
     # Define the directory you want to remove from PATH
+    Invoke-WebRequest -UserAgent "Wget" -Uri  $pkgConfigURL -OutFile "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip"
+    Expand-Archive -Path "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip" -DestinationPath $CacheDIR
     $pkgconfigDirectory = "$CacheDIR\pkg-config-lite-0.28-1\bin"
-    winget install --accept-source-agreements --accept-package-agreements --id $pkgConfigLiteAppId  --location $CacheDIR
 } catch {
     Write-Error "Failed to install pkg-config-lite: $_"
     exit 1
@@ -60,6 +64,8 @@ Write-Output "Added $pkgconfigDirectory to PATH for the current session"
 Write-Output "Installing gobject-introspection..."
 
 try {
+    Write-Output $CacheDIR
+    Get-ChildItem -Force -LiteralPath $CacheDIR
     Invoke-WebRequest -Uri https://github.com/Sensing-Dev/aravis/releases/download/v0.8.31/PyGObject-1.72.0-dependencies.zip  -OutFile $CacheDIR\dependency.zip
     Expand-Archive -Path $CacheDIR\dependency.zip -DestinationPath $CacheDIR\dependency
     Remove-Item -Force $CacheDIR\dependency.zip
@@ -85,6 +91,7 @@ try {
 # Delete the vcpkg directory recursively
 Write-Output "Deleting cache directory: "$CacheDIR" ..."
 try {
+    Write-Output "Uninstalling $pkgConfigLiteAppId..."
     Remove-Item -Path "$CacheDIR" -Recurse -Force
 } catch {
     Write-Error "Failed to remove vcpkg directory: $_"
@@ -96,8 +103,6 @@ Write-Output "Removing PKG_CONFIG_PATH environment variable"
 Remove-Item Env:\PKG_CONFIG_PATH
 
 try{
-    Write-Output "Uninstalling $pkgConfigLiteAppId..."
-    winget uninstall --id $pkgConfigLiteAppId --accept-source-agreements
     Write-Output "Clean up environment variable PATH..."
     [Environment]::SetEnvironmentVariable("Path", $currentPath, "User")
 } catch {
