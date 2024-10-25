@@ -91,6 +91,7 @@ try {
 # Delete the vcpkg directory recursively
 Write-Output "Deleting cache directory: "$CacheDIR" ..."
 try {
+    Write-Output "Uninstalling $pkgConfigLiteAppId..."
     Remove-Item -Path "$CacheDIR" -Recurse -Force
 } catch {
     Write-Error "Failed to remove vcpkg directory: $_"
@@ -102,8 +103,6 @@ Write-Output "Removing PKG_CONFIG_PATH environment variable"
 Remove-Item Env:\PKG_CONFIG_PATH
 
 try{
-    Write-Output "Uninstalling $pkgConfigLiteAppId..."
-    winget uninstall --id $pkgConfigLiteAppId --accept-source-agreements
     Write-Output "Clean up environment variable PATH..."
     [Environment]::SetEnvironmentVariable("Path", $currentPath, "User")
 } catch {
