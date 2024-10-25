@@ -246,18 +246,22 @@ jobs:
           if ( $gendc_separator_version.StartsWith("v") ){ 
             $gendc_separator_version = $gendc_separator_version.substring(1)
           }
-          pip install ion-python==$ionkit_version
+          pip install ion-contrib-python==$ionkit_version
           pip install gendc-python==$gendc_separator_version
           pip install numpy
           pip install opencv-python
           pip install aravis-python
 
-
-
       - name: Test ion-kit
         run: |
           cd ${{ github.workspace }}/download/installer/testcases/python
           python ionkit_test.py
+
+      - name: Test ion-kit with Aravis
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          $ENV:GENICAM_FILENAME = "${{ github.workspace }}/download/installer/testcases/python/arv-fake-camera.xml"
+          python ionkit_contrib_test.py ${{ github.workspace }}/download/installer/testcases/python/ionkit_contrib_test.py
 
       - name: Test OpenCV
         run: |
