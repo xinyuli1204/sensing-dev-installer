@@ -34,6 +34,7 @@ declare -A ion_kit_config=( # Declare an associative array with default values
     ["v24.05.07"]="v1.8.4"
     ["v24.05.08"]="v1.8.5"
     ["v24.05.09"]="v1.8.7"
+    ["v24.05.10"]="v1.8.8"
 )
 
 unset gendc_separator_config
@@ -44,6 +45,7 @@ declare -A gendc_separator_config=( # Declare an associative array with default 
     ["v24.05.07"]="v0.2.8"
     ["v24.05.08"]="v0.2.8"
     ["v24.05.09"]="v0.2.8"
+    ["v24.05.10"]="v0.2.8"
 )
 
 EARLIEST_STABLE_SDK="v24.05.04"
