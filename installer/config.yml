@@ -25,8 +25,8 @@ libraries:
 
   gendc_separator:
     name: gendc_separator
-    pkg_sha: "f63398030acf379ed6de0aa9942e3d7710da83bc7915aa36f727a1ad8571e9e2"
+    pkg_sha: "e3bde8fce1b293d2db25bbfb0244e7c3245e523b7d64bf78ef26b5585e585959"
     git_repo: "https://github.com/Sensing-Dev/GenDC.git"
-    version: "v0.3.4"
+    version: "v0.3.5"
 
 
