@@ -48,7 +48,7 @@ try {
 Write-Output "Installing pkgConfig..."
 try {
     # Define the directory you want to remove from PATH
-    Invoke-WebRequest -UserAgent "Wget" -Uri  $pkgConfigURL -OutFile "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip"
+    Invoke-WebRequest -UserAgent "Wget" -Uri  $pkgConfigURL -OutFile "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip" -AllowInsecureRedirect
     Expand-Archive -Path "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip" -DestinationPath $CacheDIR
     $pkgconfigDirectory = "$CacheDIR\pkg-config-lite-0.28-1\bin"
 } catch {
