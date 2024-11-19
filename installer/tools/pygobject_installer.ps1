@@ -46,10 +46,11 @@ try {
 
 # Install pkg-config-lite using winget
 Write-Output "Installing pkgConfig..."
-if ($PSVersionTable.PSVersion.Major -gt 7) {
+$PSVersionTable
+if ($PSVersionTable.PSVersion.Major -ge 7) {
     try {
         # Define the directory you want to remove from PATH
-        Write-Output "The PowerShell version is greater than 7."
+        Write-Output "The PowerShell version is 7 or greater."
         Invoke-WebRequest -UserAgent "Wget" -Uri  $pkgConfigURL -OutFile "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip"  -AllowInsecureRedirect
         Expand-Archive -Path "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip" -DestinationPath $CacheDIR
         $pkgconfigDirectory = "$CacheDIR\pkg-config-lite-0.28-1\bin"
@@ -59,7 +60,7 @@ if ($PSVersionTable.PSVersion.Major -gt 7) {
     }
 
 } else {
-    Write-Output "The PowerShell version is 7 or lower."
+    Write-Output "The PowerShell version lower than 7."
     try {
         # Define the directory you want to remove from PATH
         Invoke-WebRequest -UserAgent "Wget" -Uri  $pkgConfigURL -OutFile "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip"
