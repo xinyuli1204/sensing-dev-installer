@@ -73,7 +73,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ${{ github.workspace }}/installer/src/requirements.txt
           python ${{ github.workspace }}/installer/src/generate_config.py -p Windows -v ${{ env.TEST_CONFIG_VERSION_SDK}}
-
+          $PSVersionTable
+          
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v4
         with:
