@@ -46,15 +46,31 @@ try {
 
 # Install pkg-config-lite using winget
 Write-Output "Installing pkgConfig..."
-try {
-    # Define the directory you want to remove from PATH
-    Invoke-WebRequest -UserAgent "Wget" -Uri  $pkgConfigURL -OutFile "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip" -AllowInsecureRedirect
-    Expand-Archive -Path "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip" -DestinationPath $CacheDIR
-    $pkgconfigDirectory = "$CacheDIR\pkg-config-lite-0.28-1\bin"
-} catch {
-    Write-Error "Failed to install pkg-config-lite: $_"
-    exit 1
+if ($PSVersionTable.PSVersion.Major -gt 7) {
+    try {
+        # Define the directory you want to remove from PATH
+        Write-Output "The PowerShell version is greater than 7."
+        Invoke-WebRequest -UserAgent "Wget" -Uri  $pkgConfigURL -OutFile "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip"  -AllowInsecureRedirect
+        Expand-Archive -Path "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip" -DestinationPath $CacheDIR
+        $pkgconfigDirectory = "$CacheDIR\pkg-config-lite-0.28-1\bin"
+    } catch {
+        Write-Error "Failed to install pkg-config-lite: $_"
+        exit 1
+    }
+
+} else {
+    Write-Output "The PowerShell version is 7 or lower."
+    try {
+        # Define the directory you want to remove from PATH
+        Invoke-WebRequest -UserAgent "Wget" -Uri  $pkgConfigURL -OutFile "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip"
+        Expand-Archive -Path "$CacheDIR\pkg-config-lite-0.28-1_bin-win32.zip" -DestinationPath $CacheDIR
+        $pkgconfigDirectory = "$CacheDIR\pkg-config-lite-0.28-1\bin"
+    } catch {
+        Write-Error "Failed to install pkg-config-lite: $_"
+        exit 1
+    }
 }
+
 
 # this environment variable update affects only in this session
 $env:PATH = "$env:PATH;$pkgconfigDirectory"
