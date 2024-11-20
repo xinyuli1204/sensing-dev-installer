@@ -7,9 +7,9 @@ libraries:
 
   aravis_dep:
     name: aravis_dep
-    pkg_sha: "83076e1ddda04d4b232303c91ac87f3478e52be2a83fd7776cb8cd04ff96507a"
+    pkg_sha: "1b7370acd4139a33f252abc109ee9a38083856848379a93e34118564e787d47f"
     git_repo: "" # use recipe here for appropriate version
-    version: "v0.8.31"
+    version: "v0.8.31.post1"
 
   ion_kit:
     name: ion-kit
