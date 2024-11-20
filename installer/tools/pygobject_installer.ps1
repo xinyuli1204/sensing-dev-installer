@@ -83,7 +83,7 @@ Write-Output "Installing gobject-introspection..."
 try {
     Write-Output $CacheDIR
     Get-ChildItem -Force -LiteralPath $CacheDIR
-    Invoke-WebRequest -Uri https://github.com/Sensing-Dev/aravis/releases/download/v0.8.31/PyGObject-1.72.0-dependencies.zip  -OutFile $CacheDIR\dependency.zip
+    Invoke-WebRequest -Uri https://github.com/Sensing-Dev/aravis/releases/download/v0.8.31.post1/PyGObject-1.72.0-dependencies.zip  -OutFile $CacheDIR\dependency.zip
     Expand-Archive -Path $CacheDIR\dependency.zip -DestinationPath $CacheDIR\dependency
     Remove-Item -Force $CacheDIR\dependency.zip
 } catch {
