@@ -49,6 +49,9 @@ param(
   [Parameter(Mandatory=$false)]
   [switch]$InstallOpenCV = $false,
 
+  [Parameter(Mandatory=$false)]
+  [switch]$InstallGstTools = $false,
+
   # for debug purporse
   [Parameter(Mandatory=$false)]
   [switch]$debugScript = $false,
@@ -458,7 +461,7 @@ function Invoke-Script {
     Write-Verbose "installPath = $installPath"
 
     if (Get-FileLockStatus -directoryPath "$installPath\sensing-dev"){
-      Write-Error "Sensing-Dev is used in another process. Please terminate it before running this script."
+      Write-Error "Sensing-Dev ($installPath\sensing-dev) is used in another process. Please terminate it before running this script."
       exit 1
     }
 
@@ -631,6 +634,26 @@ function Invoke-Script {
 
       Move-Item -Force -Path "$tempExtractionPath/opencv" -Destination $tempInstallPath
     } 
+
+    ################################################################################
+    # Install gst-tools from Sensing-Dev/gst-plugins
+    ################################################################################
+    # TODO: version management in config.yml
+    if ($InstallGstTools){      
+      Write-Host "gstreamer v1.22.5.8 will be installed"
+      $gstreamerVersion="v1.22.5.8"
+      $archiveName="gst-tools-${gstreamerVersion}-win64.zip"
+      $archivePath="$tempWorkDir/$archiveName"
+      $gstToolsURL="https://github.com/Sensing-Dev/gst-plugins/releases/download/${gstreamerVersion}/gst-tools-${gstreamerVersion}-win64.zip"
+      Invoke-WebRequest -Uri $gstToolsURL -OutFile $archivePath
+      Expand-Archive -Path $archivePath -DestinationPath $tempExtractionPath
+      Move-Item -Force -Path "$tempExtractionPath/sensing-dev-gst-tools/bin/*" -Destination "$tempInstallPath/bin"
+      if (-not $debugScript){
+        Remove-Item -Force $archivePath
+      }
+    }else{
+      Write-Host "skip gstreamer v1.22.5.8 will be installed"
+    }
     
     ################################################################################
     # Uninstall old Sensing-Dev Move $tempInstallPath to $installPath
