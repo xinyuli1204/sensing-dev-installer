@@ -92,9 +92,11 @@ jobs:
           os: [windows-2019, windows-latest]
           install_option : ["-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}", "-configPath config_Windows.json"]
           with_openCV : ["", "-InstallOpenCV"]
-          # exclude:
-          #   - os: windows-latest
-          #     with_openCV: "-InstallOpenCV"
+          with_gst_tools:  ["", "-InstallGstTools"]
+          exclude:
+            # InstallGstTools is not on the release version yet
+            - install_option: "-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}"
+              with_gst_tools: "-InstallGstTools"
 
     steps:
       - name: Download All Artifacts
@@ -204,6 +206,13 @@ jobs:
           cmake --build . --config Release 
           cd Release && ./opencv_test
 
+      - name: gst-tool (gst-inspect-1.0)
+        if: ${{ (matrix.with_gst_tools == '-InstallGstTools') }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0
           
 
   test_python:
