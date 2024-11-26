@@ -115,13 +115,13 @@ jobs:
         if: ${{ matrix.os != 'windows-latest' || matrix.with_openCV != '-InstallOpenCV' || matrix.install_option != format('-version {0}', needs.set_env.outputs.LATEST_RELEASED_SDK) }}
         run: |
           cd ${{ github.workspace }}/test
-          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} -verbose
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} ${{ matrix.with_gst_tools }} -verbose
 
       - name: Install with the script from Artifacts (with the latest MSVC with Sensing-Dev v24.05 or earlier)
         if: ${{ matrix.os == 'windows-latest' && matrix.with_openCV == '-InstallOpenCV' && matrix.install_option == format('-version {0}', needs.set_env.outputs.LATEST_RELEASED_SDK) }}
         run: |
           cd ${{ github.workspace }}/test
-          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} -verbose
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_gst_tools }} -verbose
           $targetDir= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
           Invoke-WebRequest -Uri https://github.com/opencv/opencv/releases/download/${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}/opencv-${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}-windows.exe -OutFile opencv-${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}-windows.exe 
           Start-Process -FilePath opencv-${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}-windows.exe -ArgumentList "-o`"$targetDir`" -y" -Wait
