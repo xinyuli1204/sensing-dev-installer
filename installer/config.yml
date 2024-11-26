@@ -29,4 +29,9 @@ libraries:
     git_repo: "https://github.com/Sensing-Dev/GenDC.git"
     version: "v0.3.5"
 
+  gst_tool:
+    name: "gstreamer tools"
+    pkg_sha: "e4ec3c67dad8aab6b9cd684b2429e2726d43c248ee9fd5c18455dcd80c419e1d"
+    git_repo: "https://github.com/Sensing-Dev/gst-plugins"
+    version: "v1.22.5.8"
 

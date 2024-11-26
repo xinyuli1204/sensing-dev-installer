@@ -640,19 +640,22 @@ function Invoke-Script {
     ################################################################################
     # TODO: version management in config.yml
     if ($InstallGstTools){      
-      Write-Host "gstreamer v1.22.5.8 will be installed"
-      $gstreamerVersion="v1.22.5.8"
-      $archiveName="gst-tools-${gstreamerVersion}-win64.zip"
-      $archivePath="$tempWorkDir/$archiveName"
-      $gstToolsURL="https://github.com/Sensing-Dev/gst-plugins/releases/download/${gstreamerVersion}/gst-tools-${gstreamerVersion}-win64.zip"
-      Invoke-WebRequest -Uri $gstToolsURL -OutFile $archivePath
-      Expand-Archive -Path $archivePath -DestinationPath $tempExtractionPath
+      $key = "gst_tool"
+      $compName = $content.$key.name
+      $compVersion = $content.$key.version
+      $compoURL = $content.$key.pkg_url
+      $compHash = $content.$key.pkg_sha
+
+      Write-Host "$compName $compVersion will be installed"
+
+      $archiveName="$tempWorkDir/$compName.zip"
+      Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
+      CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
+      Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath
       Move-Item -Force -Path "$tempExtractionPath/sensing-dev-gst-tools/bin/*" -Destination "$tempInstallPath/bin"
       if (-not $debugScript){
         Remove-Item -Force $archivePath
       }
-    }else{
-      Write-Host "skip gstreamer v1.22.5.8 will be installed"
     }
     
     ################################################################################
