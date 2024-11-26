@@ -661,7 +661,29 @@ function Invoke-Script {
       }
     }
 
+    ################################################################################
+    # Install gst-plugin-base/good from Sensing-Dev/gst-plugins
+    ################################################################################
+    # TODO: version management in config.yml
+    if ($InstallGstTools){      
+      $key = "gst_plugins"
+      $compName = $content.$key.name
+      $compVersion = $content.$key.version
+      $compoURL = $content.$key.pkg_url
+      $compHash = $content.$key.pkg_sha
 
+      Write-Host "$compName $compVersion will be installed"
+
+      $archiveName="$tempWorkDir/$compName.zip"
+      Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
+      CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
+      Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath
+      Move-Item -Force -Path "$tempExtractionPath/sensing-dev-gst-plugins/lib/gstreamer-1.0/*" -Destination "$tempInstallPath/lib/gstreamer-1.0"
+      if (-not $debugScript){
+        Remove-Item -Force $archiveName
+      }
+    }
+    
     ################################################################################
     # Uninstall old Sensing-Dev Move $tempInstallPath to $installPath
     ################################################################################

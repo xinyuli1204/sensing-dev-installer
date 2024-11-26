@@ -36,7 +36,7 @@ libraries:
     version: "v1.22.5.8"
 
   gst_plugins:
-    name: "gstreamer plugins(base/good)"
+    name: "gstreamer plugins"
     pkg_sha: "28e8a224b7f5b1de23e45bd680f56845bd792a911315a0bcfa2064af1c1aa1d0"
     git_repo: "https://github.com/Sensing-Dev/gst-plugins"
     version: "v1.22.5.8"
