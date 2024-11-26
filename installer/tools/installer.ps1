@@ -52,7 +52,10 @@ param(
   [Parameter(Mandatory=$false)]
   [switch]$InstallGstTools = $false,
 
-  # for debug purporse
+  [Parameter(Mandatory=$false)]
+  [switch]$InstallGstPlugins = $false,
+
+  # for debug purporse #########################################################
   [Parameter(Mandatory=$false)]
   [switch]$debugScript = $false,
 
@@ -654,10 +657,11 @@ function Invoke-Script {
       Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath
       Move-Item -Force -Path "$tempExtractionPath/sensing-dev-gst-tools/bin/*" -Destination "$tempInstallPath/bin"
       if (-not $debugScript){
-        Remove-Item -Force $archivePath
+        Remove-Item -Force $archiveName
       }
     }
-    
+
+
     ################################################################################
     # Uninstall old Sensing-Dev Move $tempInstallPath to $installPath
     ################################################################################
