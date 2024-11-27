@@ -158,7 +158,73 @@ class SDKComponents {
     Write-Host ("  {0,-20} {1,-20} {2,-20}" -f $1, $2, $3)
   }
 
-  [void]InstallComponent([string]$key){
+  [void]InstallAllToTempSensingDev([string]$tempWorkDir, [string]$tempExtractionPath, [string]$tempInstallPath, [bool]$keepArchive){
+    foreach($key in $this.Dictionary.Keys){
+      $this.InstallComponentToTempSensingDev($key, [string]$tempWorkDir, $tempExtractionPath, $tempInstallPath, $keepArchive)
+    }
+  }
+
+  [void]InstallComponentToTempSensingDev([string]$key, [string]$tempWorkDir, [string]$tempExtractionPath, [string]$tempInstallPath, [bool]$keepArchive){
+    if (-not $this.Dictionary.ContainsKey($key)){
+      return 
+    }
+    
+    $item = $this.Dictionary[$key]
+
+    if (-not $item.Install){
+      return
+    }
+
+    $compVersion = $item.Version
+    $compName = $item.DisplayName
+    $compHash = $item.SHA
+    $compoURL = $item.URL
+    $compArchive = $item.LocalArchive
+    $compExtension = if ($key -eq "opencv") { "exe" } else { "zip" }
+
+    $DeleteArchive = $true
+
+    # DL or set archive
+    Write-Host " - $compName $compVersion will be installed"
+    if (-not $compArchive){
+      Write-Host "   DL $compName..."
+      $compArchive = "$tempWorkDir/$compName.$compExtension"
+      Invoke-WebRequest -Uri $compoURL -OutFile $compArchive
+      CheckComponentHash -compName $compName -archivePath $compArchive -expectedHash $compHash
+    } else {
+      Write-Host "   Use $compArchive..."
+      $DeleteArchive = $false
+    }
+
+    # install archive
+    if ($key -eq "opencv"){
+      Start-Process -FilePath $compArchive -ArgumentList "-o`"$tempExtractionPath`" -y" -Wait
+    } else {
+      Expand-Archive -Path $compArchive -DestinationPath $tempExtractionPath
+      Start-Sleep -Seconds 5
+    }
+
+    if ((-not $keepArchive) -and $DeleteArchive){
+      Remove-Item -Force $compArchive
+    }
+
+    if ($key -eq "aravis"){
+      MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath $tempInstallPath
+    }elseif ($key -eq "aravis_dep"){
+      MergeComponents -CompDirName "$tempExtractionPath/aravis_dependencies" -tempInstallPath $tempInstallPath
+    }elseif ($key -eq "ion_kit"){
+      $version_without_v = $compVersion.Substring(1)
+      $dir_name = "ion-kit-$version_without_v-x86-64-windows"
+      MergeComponents -CompDirName $tempExtractionPath/$dir_name -tempInstallPath $tempInstallPath
+    }elseif ($key -eq "gendc_separator"){
+      MergeComponents -CompDirName "$tempExtractionPath/gendc" -tempInstallPath $tempInstallPath
+    }elseif ($key -eq "opencv"){
+      Move-Item -Force -Path "$tempExtractionPath/opencv" -Destination $tempInstallPath
+    }elseif ($key -eq "gst_tool"){
+      MergeComponents -CompDirName "$tempExtractionPath/sensing-dev-gst-tools" -tempInstallPath $tempInstallPath
+    }elseif ($key -eq "gst_plugins"){
+      MergeComponents -CompDirName "$tempExtractionPath/sensing-dev-gst-plugins" -tempInstallPath $tempInstallPath
+    }
 
   }
 
@@ -647,7 +713,7 @@ function Invoke-Script {
     }
     $install_components.ShowAllEntry()
   
-  # exit 1
+
     
     ################################################################################
     # Get Uninstaller
@@ -674,128 +740,13 @@ function Invoke-Script {
     ################################################################################
     # Dlownload each component to $tempWorkDir & extract to $tempExtractionPath
     ################################################################################ 
-    $keys = @("aravis", "aravis_dep", "ion_kit", "gendc_separator")
-    $archives = @($archiveAravis, $archiveAravisDep, $archiveIonKit, $archiveGenDCSeparator)
-
-    # foreach ($key in $keys) {
-    for($i = 0; $i -lt $keys.count; $i++){
-      $key = $keys[$i]
-      $archiveName = $archives[$i]
-
-      if ($content.PSObject.Properties.Name -contains $key) {
-
-        $compVersion = $content.$key.version
-        $compName = $content.$key.name
-        $compHash = $content.$key.pkg_sha
-        $compoURL = $content.$key.pkg_url
-
-        Write-Host "$compName $compVersion will be installed"
-        if (-not $archiveName){
-          $archiveName = "$tempWorkDir/$compName.zip"
-          Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
-        }
-    
-        CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
-        Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath
-
-        Start-Sleep -Seconds 5
-
-        if ($key -eq "aravis"){
-          MergeComponents -CompDirName $tempExtractionPath/$compName -tempInstallPath $tempInstallPath
-        }elseif ($key -eq "aravis_dep"){
-          MergeComponents -CompDirName "$tempExtractionPath/aravis_dependencies" -tempInstallPath $tempInstallPath
-        }elseif ($key -eq "ion_kit"){
-          $version_without_v = $compVersion.Substring(1)
-          $dir_name = "ion-kit-$version_without_v-x86-64-windows"
-          MergeComponents -CompDirName $tempExtractionPath/$dir_name -tempInstallPath $tempInstallPath
-        }elseif ($key -eq "gendc_separator"){
-          MergeComponents -CompDirName "$tempExtractionPath/gendc" -tempInstallPath $tempInstallPath
-        }
-
-      } else {
-        Write-Error "Component $key does not exist in $configFileName"
-        exit 1
-      }
-
-      if (-not $debugScript){
-        Remove-Item -Force $archiveName
-      }
-    }
-    
-
-    ################################################################################
-    # Dlownload OpenCV to $tempWorkDir & extract to $tempExtractionPath
-    ################################################################################
-    if ($InstallOpenCV){
-      $key = "opencv"
-      $compVersion = $content.$key.version
-      $compName = $content.$key.name
-      $compHash = $content.$key.pkg_sha
-      $compoURL = $content.$key.pkg_url
-
-      Write-Host "$compName $compVersion will be installed"
-      if (-not $archiveOpenCV){
-        $archiveName = "$tempWorkDir/$compName.exe"
-        Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
-      }else{
-        $archiveName = $archiveOpenCV
-      }
-  
-      CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
-      Start-Process -FilePath $archiveName -ArgumentList "-o`"$tempExtractionPath`" -y" -Wait
-      if (-not $debugScript){
-        Remove-Item -Force $archiveName
-      }
-
-      Move-Item -Force -Path "$tempExtractionPath/opencv" -Destination $tempInstallPath
-    } 
-
-    ################################################################################
-    # Install gst-tools from Sensing-Dev/gst-plugins
-    ################################################################################
-    # TODO: version management in config.yml
-    if ($InstallGstTools){      
-      $key = "gst_tool"
-      $compName = $content.$key.name
-      $compVersion = $content.$key.version
-      $compoURL = $content.$key.pkg_url
-      $compHash = $content.$key.pkg_sha
-
-      Write-Host "$compName $compVersion will be installed"
-
-      $archiveName="$tempWorkDir/$compName.zip"
-      Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
-      CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
-      Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath
-      Move-Item -Force -Path "$tempExtractionPath/sensing-dev-gst-tools/bin/*" -Destination "$tempInstallPath/bin"
-      if (-not $debugScript){
-        Remove-Item -Force $archiveName
-      }
+    try{
+      $install_components.InstallAllToTempSensingDev($tempWorkDir, $tempExtractionPath, $tempInstallPath, $debugScript)
+    } catch {
+      Write-Error "Failed to install Sensing-Dev"
+      exit 1
     }
 
-    ################################################################################
-    # Install gst-plugin-base/good from Sensing-Dev/gst-plugins
-    ################################################################################
-    # TODO: version management in config.yml
-    if ($InstallGstPlugins){      
-      $key = "gst_plugins"
-      $compName = $content.$key.name
-      $compVersion = $content.$key.version
-      $compoURL = $content.$key.pkg_url
-      $compHash = $content.$key.pkg_sha
-
-      Write-Host "$compName $compVersion will be installed"
-
-      $archiveName="$tempWorkDir/$compName.zip"
-      Invoke-WebRequest -Uri $compoURL -OutFile $archiveName
-      CheckComponentHash -compName $compName -archivePath $archiveName -expectedHash $compHash
-      Expand-Archive -Path $archiveName -DestinationPath $tempExtractionPath
-      Move-Item -Force -Path "$tempExtractionPath/sensing-dev-gst-plugins/lib/gstreamer-1.0/*" -Destination "$tempInstallPath/lib/gstreamer-1.0"
-      if (-not $debugScript){
-        Remove-Item -Force $archiveName
-      }
-    }
-    
     ################################################################################
     # Uninstall old Sensing-Dev Move $tempInstallPath to $installPath
     ################################################################################
@@ -806,6 +757,13 @@ function Invoke-Script {
     Move-Item -Force -Path $tempInstallPath -Destination $installPath
     Move-Item -Force -Path $uninstallerPath -Destination $SeinsingDevRoot
     Write-Host "--------------------------------------" -ForegroundColor Green
+
+    ################################################################################
+    # Clean up $tempWorkDir if not $debugScript
+    ################################################################################
+    if (-not $debugScript){
+      Remove-Item -Recurse -Force $tempWorkDir
+    }
 
     ################################################################################
     # Set Environment variables
