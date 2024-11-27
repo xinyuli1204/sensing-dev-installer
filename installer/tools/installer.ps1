@@ -37,54 +37,25 @@ https://sensing-dev.github.io/doc/startup-guide/windows/index.html
 
 [cmdletbinding()]
 param(
-  [Parameter(Mandatory=$false)]
-  [string]$version,
+  [Parameter(Mandatory=$false)][string]$version,
+  [Parameter(Mandatory=$false)][string]$user,
+  [Parameter(Mandatory=$false)][string]$installPath,
 
-  [Parameter(Mandatory=$false)]
-  [string]$user,
-
-  [Parameter(Mandatory=$false)]
-  [string]$installPath,
-
-  [Parameter(Mandatory=$false)]
-  [switch]$InstallOpenCV = $false,
-
-  [Parameter(Mandatory=$false)]
-  [switch]$InstallGstTools = $false,
-
-  [Parameter(Mandatory=$false)]
-  [switch]$InstallGstPlugins = $false,
+  [Parameter(Mandatory=$false)][switch]$InstallOpenCV = $false,
+  [Parameter(Mandatory=$false)][switch]$InstallGstTools = $false,
+  [Parameter(Mandatory=$false)][switch]$InstallGstPlugins = $false,
 
   # for debug purporse >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  [Parameter(Mandatory=$false)]
-  [switch]$debugScript = $false,
-
-  [Parameter(Mandatory=$false)]
-  [string]$configPath,
-
-  [Parameter(Mandatory=$false)]
-  [string]$archiveAravis,
-
-  [Parameter(Mandatory=$false)]
-  [string]$archiveAravisDep,
-
-  [Parameter(Mandatory=$false)]
-  [string]$archiveIonKit,
-
-  [Parameter(Mandatory=$false)]
-  [string]$archiveGenDCSeparator,
-
-  [Parameter(Mandatory=$false)]
-  [string]$archiveOpenCV,
-
-  [Parameter(Mandatory=$false)]
-  [string]$archiveGstTools,
-
-  [Parameter(Mandatory=$false)]
-  [string]$archiveGstPlugin,
-
-  [Parameter(Mandatory=$false)]
-  [string]$uninstallerPath
+  [Parameter(Mandatory=$false)][switch]$debugScript = $false,
+  [Parameter(Mandatory=$false)][string]$configPath,
+  [Parameter(Mandatory=$false)][string]$archiveAravis,
+  [Parameter(Mandatory=$false)][string]$archiveAravisDep,
+  [Parameter(Mandatory=$false)][string]$archiveIonKit,
+  [Parameter(Mandatory=$false)][string]$archiveGenDCSeparator,
+  [Parameter(Mandatory=$false)][string]$archiveOpenCV,
+  [Parameter(Mandatory=$false)][string]$archiveGstTools,
+  [Parameter(Mandatory=$false)][string]$archiveGstPlugin,
+  [Parameter(Mandatory=$false)][string]$uninstallerPath
   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 )
 
@@ -98,22 +69,17 @@ class ComponentProperty {
 
   ComponentProperty() { $this.Init(@{}) }
 
-  ComponentProperty([string]$DisplayName, [bool]$Install) { 
-    $this.Init(@{DisplayName = $DisplayName; Install = $Install })
-  }
-
   ComponentProperty([string]$DisplayName, [bool]$Install, [string]$Version, [string]$SHA, [string]$URL, [string] $LocalArchive) { 
     $this.Init(@{DisplayName = $DisplayName; Install = $Install; Version=$Version; SHA=$SHA; URL=$URL; LocalArchive=$LocalArchive })
   }
 
   [void] Init([hashtable]$Properties) {
     foreach ($Property in $Properties.Keys) {
-        $this.$Property = $Properties.$Property
+      $this.$Property = $Properties.$Property
     }
-
     if ($this.LocalArchive){
       #check if the local archive is valid
-        CheckComponentHash -compName $this.DisplayName -archivePath $this.LocalArchive -expectedHash $this.SHA
+      CheckComponentHash -compName $this.DisplayName -archivePath $this.LocalArchive -expectedHash $this.SHA
     }
   }
 }
@@ -128,15 +94,10 @@ class SDKComponents {
   [void]ShowEntry([string]$key) {
     if ($this.Dictionary.ContainsKey($key)) {
       $item = $this.Dictionary[$key]
-      $source = "Online"
-      if ($item.LocalArchive){
-        $source = "Local"
-      }
-      if ($($item.Install)){
-        $this.DisplayTableRow($item.DisplayName, $item.Version, $source)
-      }else{
-        $this.DisplayTableRow($item.DisplayName, "N/A (skipped)", "")
-      }
+      $source = if ($item.Install){ if ($item.LocalArchive) { "Local" } else { "Online" }} else{""}
+      $versioninfo = if ($item.Install){$item.Version}else{"N/A (skipped)"}
+
+      $this.DisplayTableRow($item.DisplayName, $versioninfo, $source)
 
     } else {
         Write-Host "Key '$key' not found in the dictionary."
@@ -225,19 +186,35 @@ class SDKComponents {
     }elseif ($key -eq "gst_plugins"){
       MergeComponents -CompDirName "$tempExtractionPath/sensing-dev-gst-plugins" -tempInstallPath $tempInstallPath
     }
-
   }
 
+  [void]GenerateVersionInfoFile([string]$SavingDirectory, [string]$sdkversion){
+    $content = @{}
+
+    foreach($key in $this.Dictionary.Keys){
+      $item = $this.Dictionary[$key]
+      if ($item.Install){
+        $content.Add($item.DisplayName, $item.Version)
+      }
+    }
+    $jsonContent = @{
+      'Sensing-Dev' = $sdkversion
+    }
+    $jsonContent.Add("SDK components", $content)
+
+    $jsonfile = Join-Path -Path $SavingDirectory -ChildPath 'version_info.json'
+    $jsonContent | ConvertTo-Json -Depth 5 | Set-Content $jsonfile
+
+    Write-Host "version_info.json is saved under $SavingDirectory"
+  }
 }
 
-$installerName = "sensing-dev"
+$SDKName = "sensing-dev"
 $repositoryName = "Sensing-Dev/sensing-dev-installer"
 $baseUrl = "https://github.com/$repositoryName/releases/download/"
 
 function Get-LatestVersion {
-  param (
-  )
-
+  param ()
   $RepoApiUrl = "https://api.github.com/repos/$repositoryName/releases/latest"
 
   try {
@@ -260,20 +237,16 @@ function Get-LatestVersion {
 
 
 
-function CheckSDKVersion(){
+function Check-SDKVersion-Valid(){
   param(
     [string]$sdkversion
   )
-
   try {
-    # Write-Host "https://github.com/$repositoryName/releases/$sdkversion"
     $response = Invoke-WebRequest -Uri "https://github.com/$repositoryName/releases/tag/$sdkversion" -ErrorAction Stop 
-    
     if ($response.StatusCode -ne 200){
       Write-Error "Version $sdkversion does not exist"
       exit 1
     }
-
   } catch {
     Write-Error "Version $sdkversion does not exist"
     exit 1
@@ -284,9 +257,9 @@ function CheckSDKVersion(){
 
 function InstallEarlierVersion(){
   param(
-    [string]$sdkversion,
-    [bool]$withOpenCV,
-    [string]$referenceVersion = "v24.05.99"
+    [string]  $sdkversion,
+    [bool]    $withOpenCV,
+    [string]  $referenceVersion = "v24.05.99"
   )
 
   try{
@@ -488,42 +461,6 @@ function Set-EnvironmentVariables {
 
 
 
-function Generate-VersionInfo {
-  param(
-    [string]$SensingDevRoot,
-    [bool]$InstallOpenCV,
-    $compInfo
-  )
-  begin {
-    # Clear-Host
-    $script:Date = Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
-    Write-Host "--------------------------------------" -ForegroundColor Green
-    Write-Host " version_info.json is generated under $SensingDevRoot  $script:Date" -ForegroundColor Green
-  }
-  process {
-    $compVersionInfo = @{}
-    $keys = @("aravis", "aravis_dep", "ion_kit", "gendc_separator")
-    foreach ($key in $keys) {
-
-      $compVersionInfo.Add($compInfo.$key.name, $compInfo.$key.version)
-    }
-
-    if ($InstallOpenCV){
-      $compVersionInfo.Add($compInfo.opencv.name, $compInfo.opencv.version)
-    }
-
-    $jsonContent = @{
-      'Sensing-Dev' = $compInfo.sensing_dev.version
-    }
-    $jsonContent.Add("SDK components", $compVersionInfo)
-
-    $jsonfile = Join-Path -Path $SensingDevRoot -ChildPath 'version_info.json'
-    $jsonContent | ConvertTo-Json -Depth 5 | Set-Content $jsonfile
-  }
-}
-
-
-
 function Get-ConfigContent{
   param(
     [string]$configPath
@@ -620,7 +557,7 @@ function Invoke-Script {
     ################################################################################
     # Get Working Directory
     ################################################################################
-    $tempWorkDir = Join-Path -Path $env:TEMP -ChildPath $installerName
+    $tempWorkDir = Join-Path -Path $env:TEMP -ChildPath $SDKName
     if (-not (Test-Path $tempWorkDir)) {
         New-Item -ItemType Directory -Path $tempWorkDir | Out-Null
     }
@@ -662,7 +599,7 @@ function Invoke-Script {
       $version = Get-LatestVersion
     } else {
       # suggested installation (w version setting)
-      CheckSDKVersion -sdkversion $version
+      Check-SDKVersion-Valid -sdkversion $version
     }
     
     Write-Host "Sensing-Dev $version will be installed." -ForegroundColor Green
@@ -750,13 +687,12 @@ function Invoke-Script {
     ################################################################################
     # Uninstall old Sensing-Dev Move $tempInstallPath to $installPath
     ################################################################################
-    $SeinsingDevRoot = Join-Path -Path $installPath -ChildPath $installerName
+    $SeinsingDevRoot = Join-Path -Path $installPath -ChildPath $SDKName
 
     Write-Host "Uninstall old sensing-dev if any" -ForegroundColor Green
     & $uninstallerPath
     Move-Item -Force -Path $tempInstallPath -Destination $installPath
     Move-Item -Force -Path $uninstallerPath -Destination $SeinsingDevRoot
-    Write-Host "--------------------------------------" -ForegroundColor Green
 
     ################################################################################
     # Clean up $tempWorkDir if not $debugScript
@@ -773,7 +709,8 @@ function Invoke-Script {
     ################################################################################
     # Generate version info json
     ################################################################################
-    Generate-VersionInfo -SensingDevRoot $SeinsingDevRoot -InstallOpenCV $InstallOpenCV -compInfo $content
+    Write-Host "--------------------------------------" -ForegroundColor Green
+    $install_components.GenerateVersionInfoFile($SeinsingDevRoot, $version)
 
     Write-Host "Done Sensing-Dev installation" -ForegroundColor Green
   }
