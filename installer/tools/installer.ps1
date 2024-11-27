@@ -55,7 +55,7 @@ param(
   [Parameter(Mandatory=$false)]
   [switch]$InstallGstPlugins = $false,
 
-  # for debug purporse #########################################################
+  # for debug purporse >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   [Parameter(Mandatory=$false)]
   [switch]$debugScript = $false,
 
@@ -78,8 +78,91 @@ param(
   [string]$archiveOpenCV,
 
   [Parameter(Mandatory=$false)]
+  [string]$archiveGstTools,
+
+  [Parameter(Mandatory=$false)]
+  [string]$archiveGstPlugin,
+
+  [Parameter(Mandatory=$false)]
   [string]$uninstallerPath
+  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 )
+
+class ComponentProperty {
+  [ValidateNotNullOrEmpty()][string]  $DisplayName
+  [ValidateNotNullOrEmpty()][bool]    $Install
+                            [string]  $Version
+                            [string]  $SHA
+                            [string]  $URL
+                            [string]  $LocalArchive
+
+  ComponentProperty() { $this.Init(@{}) }
+
+  ComponentProperty([string]$DisplayName, [bool]$Install) { 
+    $this.Init(@{DisplayName = $DisplayName; Install = $Install })
+  }
+
+  ComponentProperty([string]$DisplayName, [bool]$Install, [string]$Version, [string]$SHA, [string]$URL, [string] $LocalArchive) { 
+    $this.Init(@{DisplayName = $DisplayName; Install = $Install; Version=$Version; SHA=$SHA; URL=$URL; LocalArchive=$LocalArchive })
+  }
+
+  [void] Init([hashtable]$Properties) {
+    foreach ($Property in $Properties.Keys) {
+        $this.$Property = $Properties.$Property
+    }
+
+    if ($this.LocalArchive){
+      #check if the local archive is valid
+        CheckComponentHash -compName $this.DisplayName -archivePath $this.LocalArchive -expectedHash $this.SHA
+    }
+  }
+}
+
+class SDKComponents {
+  [hashtable]$Dictionary = @{}
+
+  [void]AddEntry([string]$key, [ComponentProperty]$component) {
+    $this.Dictionary[$key] = $component
+  }
+
+  [void]ShowEntry([string]$key) {
+    if ($this.Dictionary.ContainsKey($key)) {
+      $item = $this.Dictionary[$key]
+      $source = "Online"
+      if ($item.LocalArchive){
+        $source = "Local"
+      }
+      if ($($item.Install)){
+        $this.DisplayTableRow($item.DisplayName, $item.Version, $source)
+      }else{
+        $this.DisplayTableRow($item.DisplayName, "N/A (skipped)", "")
+      }
+
+    } else {
+        Write-Host "Key '$key' not found in the dictionary."
+    }
+  }
+
+  [void]ShowAllEntry() {
+    Write-Host "Install components:"
+    Write-Host "  ================================================"
+    $this.DisplayTableRow("Component Name", "Version", "Source")
+    Write-Host "  ------------------------------------------------"   
+    foreach($key in $this.Dictionary.Keys){
+      $this.ShowEntry($key)
+    }
+    Write-Host "  ================================================"
+  }
+
+  [void]DisplayTableRow([string]$1, [string]$2, [string]$3){
+    Write-Host ("  {0,-20} {1,-20} {2,-20}" -f $1, $2, $3)
+  }
+
+  [void]InstallComponent([string]$key){
+
+  }
+
+}
 
 $installerName = "sensing-dev"
 $repositoryName = "Sensing-Dev/sensing-dev-installer"
@@ -452,7 +535,7 @@ function Invoke-Script {
       # Clear-Host
       $script:Date = Get-Date -Format "dddd MM/dd/yyyy HH:mm K"
       Write-Host "--------------------------------------" -ForegroundColor Green
-      Write-Host " Start Installation  $script:Date" -ForegroundColor Green
+      Write-Host "Start Installation  $script:Date" -ForegroundColor Green
   }
   process {
     ################################################################################
@@ -495,7 +578,7 @@ function Invoke-Script {
     # mainly for debug purpose (using config_Windows.json to specify versions)
     $configFileName = "config_Windows.json"
     if ($configPath){
-      Write-Verbose "Found local $configFileName = $configPath"
+      Write-Host "Found local $configFileName : $configPath"
       $content = Get-ConfigContent -configPath $configPath
       $version_from_config = $content.sensing_dev.version
 
@@ -534,8 +617,37 @@ function Invoke-Script {
         Write-Error "Failed to obtain $configFileName of $version"
         exit 1
       }
-
     } 
+
+    ################################################################################
+    # Component version
+    ################################################################################
+    $install_components = [SDKComponents]::new()
+
+    # Default items
+    $keys = @("aravis", "aravis_dep", "ion_kit", "gendc_separator")
+    $archives = @($archiveAravis, $archiveAravisDep, $archiveIonKit, $archiveGenDCSeparator)
+    
+    for($i = 0; $i -lt $keys.count; $i++){
+      $key = $keys[$i]
+      $archive = $archives[$i]
+      $install_components.AddEntry($key, [ComponentProperty]::new($content.$key.name, $true, $content.$key.version, $content.$key.pkg_sha, $content.$key.pkg_url, $archive))
+    }
+
+    # Optional
+    $keys = @("opencv", "gst_tool", "gst_plugins")
+    $if_insatall = @($InstallOpenCV, $InstallGstTools, $InstallGstPlugins)
+    $archives = @($archiveOpenCV, $archiveGstTools, $archiveGstPlugin)
+    
+    for($i = 0; $i -lt $keys.count; $i++){
+      $key = $keys[$i]
+      $archive = $archives[$i]
+      $install_components.AddEntry($key, [ComponentProperty]::new($content.$key.name, $if_insatall[$i], $content.$key.version, $content.$key.pkg_sha, $content.$key.pkg_url, $archive))
+
+    }
+    $install_components.ShowAllEntry()
+  
+  # exit 1
     
     ################################################################################
     # Get Uninstaller
@@ -665,7 +777,7 @@ function Invoke-Script {
     # Install gst-plugin-base/good from Sensing-Dev/gst-plugins
     ################################################################################
     # TODO: version management in config.yml
-    if ($InstallGstTools){      
+    if ($InstallGstPlugins){      
       $key = "gst_plugins"
       $compName = $content.$key.name
       $compVersion = $content.$key.version
