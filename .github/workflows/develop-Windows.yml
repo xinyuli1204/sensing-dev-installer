@@ -306,6 +306,52 @@ jobs:
           cd ${{ github.workspace }}/download/installer/testcases/python
           python aravis_test.py
 
-   
+
+          
     
-    
+  test_gst_opencv:
+    runs-on: ${{ matrix.os }}
+    needs: [set_env, generate_config]
+    strategy:
+      matrix:
+        install_option : ["-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}", "-configPath config_Windows.json"]
+        with_openCV : ["", "-InstallOpenCV"]
+        os: [windows-latest]
+        python_version: ["3.10", "3.11"]
+
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-test-for-windows
+          path: download
+
+      - name: Install with the script from Artifacts (general)
+        run: |
+          cd ${{ github.workspace }}/download/installer/tools/
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} -verbose
+  
+      - name: Run opencv-python with gstreamer script
+        run: | 
+          cd ${{ github.workspace }}/download/installer/tools/
+          powershell.exe -ExecutionPolicy Bypass -File .\opencv_python_installer.ps1
+
+      - name: Test opencv-python with gstreamer
+        run: |
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+          $GST_SENSING_DEV = Join-Path -Path $SENSING_DEV_ROOT -ChildPath "bin"
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python opencv_gst_test.py $GST_SENSING_DEV
+          if ($LASTEXITCODE -eq 0) {
+              Write-Output "PASSED python test"
+          } else {
+              Write-Output "FAILED GST python test"
+              exit 1
+          }
+          
+          
