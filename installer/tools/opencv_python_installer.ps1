@@ -74,8 +74,8 @@ function Invoke-Script {
         ########################################################################
         # Check opencv-python
         ########################################################################
-        $CurrentOpenCVVersion = python -c "import cv2; print(numpy.__version__)" 2>$null
-        if ($CurrentOpenCVVersion){
+        $InstalledOpencvPython = python -m pip list | Select-String "opencv-python"
+        if ($InstalledOpencvPython){
             Write-Output "opencv-python $CurrentOpenCVVersion is already installed. Unistalling..."
             pip uninstall opencv-python -y 
         }
