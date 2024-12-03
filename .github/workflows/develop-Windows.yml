@@ -341,7 +341,11 @@ jobs:
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} -verbose
-  
+
+      - name: Install Numpy
+        run: | 
+          pip install numpy==2.1.1       
+
       - name: Run opencv-python with gstreamer script
         run: | 
           cd ${{ github.workspace }}/download/installer/tools/
