@@ -92,9 +92,13 @@ jobs:
           os: [windows-2019, windows-latest]
           install_option : ["-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}", "-configPath config_Windows.json"]
           with_openCV : ["", "-InstallOpenCV"]
-          # exclude:
-          #   - os: windows-latest
-          #     with_openCV: "-InstallOpenCV"
+          with_gst_option:  ["", "-InstallGstTools", "-InstallGstTools -InstallGstPlugins"]
+          exclude:
+            # InstallGstTools is not on the release version yet
+            - install_option: "-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}"
+              with_gst_option: "-InstallGstTools"
+            - install_option: "-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}"
+              with_gst_option: "-InstallGstTools -InstallGstPlugins"
 
     steps:
       - name: Download All Artifacts
@@ -113,13 +117,13 @@ jobs:
         if: ${{ matrix.os != 'windows-latest' || matrix.with_openCV != '-InstallOpenCV' || matrix.install_option != format('-version {0}', needs.set_env.outputs.LATEST_RELEASED_SDK) }}
         run: |
           cd ${{ github.workspace }}/test
-          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} -verbose
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} ${{ matrix.with_gst_option }} -verbose
 
       - name: Install with the script from Artifacts (with the latest MSVC with Sensing-Dev v24.05 or earlier)
         if: ${{ matrix.os == 'windows-latest' && matrix.with_openCV == '-InstallOpenCV' && matrix.install_option == format('-version {0}', needs.set_env.outputs.LATEST_RELEASED_SDK) }}
         run: |
           cd ${{ github.workspace }}/test
-          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} -verbose
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_gst_option }} -verbose
           $targetDir= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
           Invoke-WebRequest -Uri https://github.com/opencv/opencv/releases/download/${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}/opencv-${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}-windows.exe -OutFile opencv-${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}-windows.exe 
           Start-Process -FilePath opencv-${{ needs.set_env.outputs.LATEST_OPENCV_VERSION }}-windows.exe -ArgumentList "-o`"$targetDir`" -y" -Wait
@@ -204,6 +208,29 @@ jobs:
           cmake --build . --config Release 
           cd Release && ./opencv_test
 
+      - name: Test gst-inspect-1.0 (-InstallGstTools)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0
+
+      - name: Test gst-inspect-1.0 filesrc (-InstallGstTools and -InstallGstPlugins)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 filesrc
+
+      - name: Test gst-inspect-1.0 multifilesrc (-InstallGstTools and -InstallGstPlugins for Good)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 multifilesrc
           
 
   test_python:

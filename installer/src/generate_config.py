@@ -104,6 +104,14 @@ def generate_url(cmp, version, pf):
         else:
             print('Platform', pf, 'is not supported.')
             sys.exit(1)
+    elif cmp == 'gst_tool':
+        if pf == 'Linux':
+            return None, updated_ver
+        url = 'https://github.com/Sensing-Dev/gst-plugins/releases/download/{}/gst-tools-{}-win64.zip'.format(version, version)
+    elif cmp == 'gst_plugins':
+        if pf == 'Linux':
+            return None, updated_ver
+        url = 'https://github.com/Sensing-Dev/gst-plugins/releases/download/{}/gst-plugins-{}-win64.zip'.format(version, version)
     else:
         print(cmp, 'is not supported')
         sys.exit(1)
@@ -140,7 +148,7 @@ if __name__ == '__main__':
 
     input_file_name = 'config.yml'
 
-    comp_names = ['aravis', 'aravis_dep', 'ion_kit', 'opencv', 'gendc_separator']
+    comp_names = ['aravis', 'aravis_dep', 'ion_kit', 'opencv', 'gendc_separator', 'gst_tool', 'gst_plugins']
 
     dst_dir = os.path.join(root_dir, 'build')
     if not os.path.exists(dst_dir):
