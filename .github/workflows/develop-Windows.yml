@@ -318,6 +318,7 @@ jobs:
         with_openCV : ["", "-InstallOpenCV"]
         os: [windows-latest]
         python_version: ["3.10", "3.11"]
+        overwrite_opencv: [true, false]
 
     steps:
       - name: Setup Python
@@ -337,16 +338,31 @@ jobs:
           Move-Item -Path ${{ github.workspace }}/download/build/config_Windows.json -Destination ${{ github.workspace }}/test
           Move-Item -Path ${{ github.workspace }}/download/installer/tools/installer.ps1 -Destination ${{ github.workspace }}/test
 
-      - name: Install with the script from Artifacts (general)
+      - name: Install Sensing-Dev with the script from Artifacts (general)
         run: |
           cd ${{ github.workspace }}/test
           powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} -verbose
 
       - name: Install Numpy
         run: | 
-          pip install numpy==2.1.1       
+          pip install numpy==2.1.1 
+          
+      - name: Install OpenCV (for overwrite test)
+        if: ${{ matrix.overwrite_opencv }}
+        run: |
+          pip install opencv-python
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+          $GST_SENSING_DEV = Join-Path -Path $SENSING_DEV_ROOT -ChildPath "bin"
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python opencv_gst_test.py $GST_SENSING_DEV
+          if ($LASTEXITCODE -ne 0) {
+              Write-Output "This opencv-python is not built with Gstreamer"
+          } else {
+              Write-Output "This opencv-python is built with Gstreamer"
+              exit 1
+          } 
 
-      - name: Run opencv-python with gstreamer script
+      - name: Run opencv-python with gstreamer installer script
         run: | 
           cd ${{ github.workspace }}/download/installer/tools/
           powershell.exe -ExecutionPolicy Bypass -File .\opencv_python_installer.ps1
@@ -358,9 +374,9 @@ jobs:
           cd ${{ github.workspace }}/download/installer/testcases/python
           python opencv_gst_test.py $GST_SENSING_DEV
           if ($LASTEXITCODE -eq 0) {
-              Write-Output "PASSED python test"
+              Write-Output "PASSED This opencv-python is built with Gstreamer"
           } else {
-              Write-Output "FAILED GST python test"
+              Write-Output "FAILED: This opencv-python is not built with Gstreamer"
               exit 1
           }
           
