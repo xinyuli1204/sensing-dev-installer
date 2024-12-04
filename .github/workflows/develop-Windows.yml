@@ -216,13 +216,21 @@ jobs:
           $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
           gst-inspect-1.0
 
-      - name: Test gst-inspect-1.0 filesrc (-InstallGstTools and -InstallGstPlugins)
+      - name: Test gst-inspect-1.0 queue (-InstallGstTools and -InstallGstPlugins)
         if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $env:PATH="$env:PATH;$PATH"
           $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
-          gst-inspect-1.0 filesrc
+          gst-inspect-1.0 queue
+
+      - name: Test gst-inspect-1.0 videoconvert (-InstallGstTools and -InstallGstPlugins for Base)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 videoconvert
 
       - name: Test gst-inspect-1.0 multifilesrc (-InstallGstTools and -InstallGstPlugins for Good)
         if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
@@ -231,7 +239,22 @@ jobs:
           $env:PATH="$env:PATH;$PATH"
           $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
           gst-inspect-1.0 multifilesrc
-          
+
+      - name: Test gst-inspect-1.0 aravissrc (-InstallGstTools)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 aravissrc
+
+      - name: Test gst-inspect-1.0 gendcseparator (-InstallGstTools)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 gendcseparator
 
   test_python:
     runs-on: ${{ matrix.os }}
