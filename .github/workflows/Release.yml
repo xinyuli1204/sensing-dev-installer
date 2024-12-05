@@ -119,6 +119,7 @@ jobs:
           os: [windows-2019, windows-latest]
           version : ["-version ${{ needs.set_env.outputs.ref_name }}", "-version v24.05.08", "-version v24.01.04", ""]
           with_openCV : ["", "-InstallOpenCV"]
+          with_gst_option:  ["", "-InstallGstTools", "-InstallGstTools -InstallGstPlugins"]
           exclude:
             - os: windows-latest
               with_openCV: "-InstallOpenCV"
@@ -129,12 +130,20 @@ jobs:
             - os: windows-latest
               with_openCV: "-InstallOpenCV"
               version: ""
+            - install_option: "-version v24.01.04"
+              with_gst_option: "-InstallGstTools"
+            - install_option: "-version v24.05.08"
+              with_gst_option: "-InstallGstTools"
+            - install_option: "-version v24.01.04"
+              with_gst_option: "-InstallGstTools -InstallGstPlugins"
+            - install_option: "-version v24.05.08"
+              with_gst_option: "-InstallGstTools -InstallGstPlugins"
     steps:
       - name: Download installer & install
         run: |
           $url = "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/installer.ps1"
           Invoke-WebRequest $url -OutFile .\installer.ps1
-          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.version }} ${{ matrix.with_openCV }} -verbose
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.version }} ${{ matrix.with_openCV }} ${{ matrix.with_gst_option }} -verbose
 
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
@@ -185,3 +194,51 @@ jobs:
           cd ${{ github.workspace }}/download/installer/testcases/cpp/opencv_test && cmake ./ -DSDK_VERSION="$sensingdevShortVersion"
           cmake --build . --config Release 
           cd Release && ls && ./opencv_test
+
+      - name: Test gst-inspect-1.0 (-InstallGstTools)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0
+
+      - name: Test gst-inspect-1.0 queue (-InstallGstTools and -InstallGstPlugins)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 queue
+
+      - name: Test gst-inspect-1.0 videoconvert (-InstallGstTools and -InstallGstPlugins for Base)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 videoconvert
+
+      - name: Test gst-inspect-1.0 multifilesrc (-InstallGstTools and -InstallGstPlugins for Good)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 multifilesrc
+
+      - name: Test gst-inspect-1.0 aravissrc (-InstallGstTools)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 aravissrc
+
+      - name: Test gst-inspect-1.0 gendcseparator (-InstallGstTools)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 gendcseparator
