@@ -130,13 +130,13 @@ jobs:
             - os: windows-latest
               with_openCV: "-InstallOpenCV"
               version: ""
-            - install_option: "-version v24.01.04"
+            - version: "-version v24.01.04"
               with_gst_option: "-InstallGstTools"
-            - install_option: "-version v24.05.08"
+            - version: "-version v24.05.08"
               with_gst_option: "-InstallGstTools"
-            - install_option: "-version v24.01.04"
+            - version: "-version v24.01.04"
               with_gst_option: "-InstallGstTools -InstallGstPlugins"
-            - install_option: "-version v24.05.08"
+            - version: "-version v24.05.08"
               with_gst_option: "-InstallGstTools -InstallGstPlugins"
     steps:
       - name: Download installer & install
