@@ -216,13 +216,21 @@ jobs:
           $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
           gst-inspect-1.0
 
-      - name: Test gst-inspect-1.0 filesrc (-InstallGstTools and -InstallGstPlugins)
+      - name: Test gst-inspect-1.0 queue (-InstallGstTools and -InstallGstPlugins)
         if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $env:PATH="$env:PATH;$PATH"
           $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
-          gst-inspect-1.0 filesrc
+          gst-inspect-1.0 queue
+
+      - name: Test gst-inspect-1.0 videoconvert (-InstallGstTools and -InstallGstPlugins for Base)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 videoconvert
 
       - name: Test gst-inspect-1.0 multifilesrc (-InstallGstTools and -InstallGstPlugins for Good)
         if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
@@ -231,7 +239,22 @@ jobs:
           $env:PATH="$env:PATH;$PATH"
           $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
           gst-inspect-1.0 multifilesrc
-          
+
+      - name: Test gst-inspect-1.0 aravissrc (-InstallGstTools)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 aravissrc
+
+      - name: Test gst-inspect-1.0 gendcseparator (-InstallGstTools)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
+          gst-inspect-1.0 gendcseparator
 
   test_python:
     runs-on: ${{ matrix.os }}
@@ -306,6 +329,78 @@ jobs:
           cd ${{ github.workspace }}/download/installer/testcases/python
           python aravis_test.py
 
-   
+
+          
     
-    
+  test_gst_opencv:
+    runs-on: ${{ matrix.os }}
+    needs: [set_env, generate_config]
+    strategy:
+      matrix:
+        install_option : ["-version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}", "-configPath config_Windows.json"]
+        with_openCV : ["", "-InstallOpenCV"]
+        os: [windows-latest]
+        python_version: ["3.10", "3.11"]
+        overwrite_opencv: [true, false]
+
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-test-for-windows
+          path: download
+
+      - name: Set all items under test directory
+        run: | 
+          New-Item -ItemType Directory -Path ${{ github.workspace }}/test | Out-Null
+          Move-Item -Path ${{ github.workspace }}/download/build/config_Windows.json -Destination ${{ github.workspace }}/test
+          Move-Item -Path ${{ github.workspace }}/download/installer/tools/installer.ps1 -Destination ${{ github.workspace }}/test
+
+      - name: Install Sensing-Dev with the script from Artifacts (general)
+        run: |
+          cd ${{ github.workspace }}/test
+          powershell.exe -ExecutionPolicy Bypass -File .\installer.ps1 ${{ matrix.install_option }} ${{ matrix.with_openCV }} -verbose
+
+      - name: Install Numpy
+        run: | 
+          pip install numpy==2.1.1 
+          
+      - name: Install OpenCV (for overwrite test)
+        if: ${{ matrix.overwrite_opencv }}
+        continue-on-error: true
+        run: |
+          pip install opencv-python
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+          $GST_SENSING_DEV = Join-Path -Path $SENSING_DEV_ROOT -ChildPath "bin"
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python opencv_gst_test.py $GST_SENSING_DEV
+          if ($LASTEXITCODE -ne 0) {
+              Write-Output "This opencv-python is not built with Gstreamer"
+          } else {
+              Write-Output "This opencv-python is built with Gstreamer"
+          } 
+
+      - name: Run opencv-python with gstreamer installer script
+        run: | 
+          cd ${{ github.workspace }}/download/installer/tools/
+          powershell.exe -ExecutionPolicy Bypass -File .\opencv_python_installer.ps1
+
+      - name: Test opencv-python with gstreamer
+        run: |
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+          $GST_SENSING_DEV = Join-Path -Path $SENSING_DEV_ROOT -ChildPath "bin"
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python opencv_gst_test.py $GST_SENSING_DEV
+          if ($LASTEXITCODE -eq 0) {
+              Write-Output "PASSED This opencv-python is built with Gstreamer"
+          } else {
+              Write-Output "FAILED: This opencv-python is not built with Gstreamer"
+              exit 1
+          }
+          
+          

@@ -143,6 +143,38 @@ jobs:
           eval "$python_output"
           ./opencv_test
 
+      - name: Install modules for gstreamer test
+        run: |
+          sudo apt-get update
+          sudo apt-get install libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio -y
+
+      - name: Test gst-inspect-1.0 (-InstallGstTools)
+        run: |
+          gst-inspect-1.0
+
+      - name: Test gst-inspect-1.0 queue (-InstallGstTools and -InstallGstPlugins)
+        run: |
+          gst-inspect-1.0 queue
+  
+      - name: Test gst-inspect-1.0 videoconvert (-InstallGstTools and -InstallGstPlugins)
+        run: |
+          gst-inspect-1.0 videoconvert
+
+      - name: Test gst-inspect-1.0 multifilesrc (-InstallGstTools and -InstallGstPlugins for Good)
+        run: |
+          gst-inspect-1.0 multifilesrc
+
+      - name: Test gst-inspect-1.0 aravissrc (-InstallGstTools)
+        run: |
+          export GST_PLUGIN_PATH=/opt/sensing-dev/lib/x86_64-linux-gnu/gstreamer-1.0/:$GST_PLUGIN_PATH
+          export LD_LIBRARY_PATH=/opt/sensing-dev/lib:/opt/sensing-dev/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+          gst-inspect-1.0 aravissrc
+
+      - name: Test gst-inspect-1.0 gendcseparator (-InstallGstTools)
+        run: |
+          export GST_PLUGIN_PATH=/opt/sensing-dev/lib/x86_64-linux-gnu/gstreamer-1.0/:$GST_PLUGIN_PATH
+          gst-inspect-1.0 gendcseparator
+
           
 
   test_python:
@@ -209,9 +241,46 @@ jobs:
         run: |
           cd ${{ github.workspace }}/download/installer/testcases/python
           python opencv_test.py
-          
-                    
 
 
+
+
+
+  test_gst_opencv:
+    runs-on: ${{ matrix.os }}
+    needs: [set_env, generate_config]
+    strategy:
+      matrix:
+        os: [ubuntu-22.04]
+        python_version: ["3.10", "3.11"]      
+
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-test-for-linux
+          path: download
+
+      - name: Install Numpy
+        run: | 
+          pip3 install numpy
+
+      - name: Install gstreamer
+        run: |
+          sudo apt-get update
+          sudo apt-get install libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio -y
     
+      - name: Install OpenCV
+        run: |
+          pip3 install --no-binary opencv-python opencv-python==4.10.0.84 --verbose    
+
+      - name: Test if opencv-python is built with gstreamer
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python opencv_gst_test.py
     
