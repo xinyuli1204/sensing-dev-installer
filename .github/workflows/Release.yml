@@ -5,15 +5,33 @@ on:
     tags:
       - "v*.*.*"  # vYY.MM.Patch example v23.08.00 etc.
 
+### modify here for update #####################################################
+env:
+  SENSING_DEV_V24_01: v24.01.04
+  SENSING_DEV_V24_05: v24.05.10
+  SENSING_DEV_V24_09: v24.09.08
+################################################################################
+
+
 jobs:
   set_env:
     runs-on: ubuntu-22.04
     outputs:
       ref_name: ${{ steps.get_ref_name.outputs.ref_name }}
+      SENSING_DEV_V24_01: ${{ steps.set_vars.outputs.SENSING_DEV_V24_01 }}
+      SENSING_DEV_V24_05: ${{ steps.set_vars.outputs.SENSING_DEV_V24_05 }}
+      SENSING_DEV_V24_09: ${{ steps.set_vars.outputs.SENSING_DEV_V24_09 }}
     steps:
       - name: Get the ref name
         id: get_ref_name
-        run: echo "ref_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        run: |
+          echo "ref_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+      - name: Set environment variables 
+        id: set_vars
+        run: |
+          echo "SENSING_DEV_V24_01=${{ env.SENSING_DEV_V24_01}}" >> $env:GITHUB_OUTPUT
+          echo "SENSING_DEV_V24_05=${{ env.SENSING_DEV_V24_05}}" >> $env:GITHUB_OUTPUT
+          echo "SENSING_DEV_V24_09=${{ env.SENSING_DEV_V24_09}}" >> $env:GITHUB_OUTPUT
 
   release:
     runs-on: ubuntu-22.04
@@ -117,26 +135,31 @@ jobs:
     strategy:
         matrix:
           os: [windows-2019, windows-latest]
-          version : ["-version ${{ needs.set_env.outputs.ref_name }}", "-version v24.05.08", "-version v24.01.04", ""]
+          version : ["-version ${{ needs.set_env.outputs.ref_name }}", "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_09 }}", "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_05 }}", "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_01 }}", ""]
           with_openCV : ["", "-InstallOpenCV"]
           with_gst_option:  ["", "-InstallGstTools", "-InstallGstTools -InstallGstPlugins"]
           exclude:
             - os: windows-latest
               with_openCV: "-InstallOpenCV"
-              version: "-version 24.05.06"
+              version: "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_05 }}"
             - os: windows-latest
               with_openCV: "-InstallOpenCV"
-              version: "-version 24.01.04"
-            - os: windows-latest
-              with_openCV: "-InstallOpenCV"
-              version: ""
-            - version: "-version v24.01.04"
+              version: "-version  ${{ needs.set_env.outputs.SENSING_DEV_V24_01 }}"
+            - version: "-version  ${{ needs.set_env.outputs.SENSING_DEV_V24_01 }}"
               with_gst_option: "-InstallGstTools"
-            - version: "-version v24.05.08"
-              with_gst_option: "-InstallGstTools"
-            - version: "-version v24.01.04"
+            - version: "-version  ${{ needs.set_env.outputs.SENSING_DEV_V24_01 }}"
               with_gst_option: "-InstallGstTools -InstallGstPlugins"
-            - version: "-version v24.05.08"
+            - version: "-version  ${{ needs.set_env.outputs.SENSING_DEV_V24_05 }}"
+              with_gst_option: "-InstallGstTools"
+            - version: "-version  ${{ needs.set_env.outputs.SENSING_DEV_V24_05 }}"
+              with_gst_option: "-InstallGstTools -InstallGstPlugins"
+            - version: "-version  ${{ needs.set_env.outputs.SENSING_DEV_V24_09 }}"
+              with_gst_option: "-InstallGstTools"
+            - version: "-version  ${{ needs.set_env.outputs.SENSING_DEV_V24_09 }}"
+              with_gst_option: "-InstallGstTools -InstallGstPlugins"
+            - version: ""
+              with_gst_option: "-InstallGstTools"
+            - version: ""
               with_gst_option: "-InstallGstTools -InstallGstPlugins"
     steps:
       - name: Download installer & install
@@ -152,7 +175,7 @@ jobs:
           path: download
 
       - name: Check if version_info.json exists
-        if: ${{ ! (matrix.version == '-version v24.01.04') }}
+        if: ${{ ! (matrix.version == needs.set_env.outputs.SENSING_DEV_V24_01) }}
         run: |
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
           $target_file = Join-Path -Path "$SENSING_DEV_ROOT" -ChildPath "version_info.json"
