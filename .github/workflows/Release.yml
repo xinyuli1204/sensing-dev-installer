@@ -90,11 +90,14 @@ jobs:
           with_gst_option:  ["", "--install-gst-tools", "--install-gst-tools --install-gst-plugin"]
           exclude:
             # InstallGstTools is not on the release version yet
-            - install_option: "-version ${{ needs.set_env.outputs.ref_name }}"
+            - version: "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_05 }}"
               with_gst_option: "--install-gst-tools"
-            - install_option: "-version ${{ needs.set_env.outputs.ref_name }}"
+            - version: "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_05 }}"
               with_gst_option: "--install-gst-tools --install-gst-plugin"
-
+            - version: ""
+              with_gst_option: "--install-gst-tools"
+            - version: ""
+              with_gst_option: "--install-gst-tools --install-gst-plugin"
     steps:
       - name: Download installer & install
         run: |
