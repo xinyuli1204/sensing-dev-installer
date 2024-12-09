@@ -159,6 +159,7 @@ jobs:
           cd Release && ls && ./ionkit_test
 
       - name: Test opencv (v24.09 or later)
+        if: ${{ matrix.with_openCV == '-InstallOpenCV' }}
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
