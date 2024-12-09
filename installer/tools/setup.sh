@@ -27,6 +27,8 @@ baseUrl="https://github.com/$repositoryName/releases/download/"
 version=""
 installPath=""
 InstallOpenCV=false
+InstallGstPlugins=false
+InstallGstTools=false
 
 # Deprecated as of v24.05.05
 user=""
@@ -49,6 +51,8 @@ while [[ "$#" -gt 0 ]]; do
     --user) user="$2"; shift ;;
     --installPath) installPath="$2"; shift ;;
     --install-opencv) InstallOpenCV=true ;;
+    --install-gst-tools) InstallGstPlugins=true ;;
+    --install-gst-plugin) InstallGstTools=true ;;
     --debugScript) debugScript=true ;;
     --config-path) configPath="$2"; shift ;;
     --archiveAravis) archiveAravis="$2"; shift ;;
@@ -139,6 +143,8 @@ verbose "user: $user"
 verbose "installPath: $installPath"
 verbose "verbose: $verbose"
 verbose "InstallOpenCV: $InstallOpenCV"
+verbose "InstallGstPlugins: $InstallGstPlugins"
+verbose "InstallGstTools: $InstallGstTools"
 verbose "debugScript: $debugScript"
 verbose "configPath: $configPath"
 # verbose "archiveAravis: $archiveAravis"
@@ -175,6 +181,31 @@ else
     gtk-doc-tools \
     jq
   echo "**********"
+fi
+
+################################################################################
+# Install Gst plugins
+################################################################################
+
+if [ -n "$InstallGstPlugins" ]; then
+  echo "**********"
+  echo "Install gst-plugins"
+  echo "**********"
+  apt-get -y upgrade && apt-get update && apt-get install -y \
+  gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
+fi
+
+################################################################################
+# Install Gst tools
+################################################################################
+
+if [ -n "$InstallGstTools" ]; then
+  echo "**********"
+  echo "Install gst-tools"
+  echo "**********"
+  apt-get -y upgrade && apt-get update && apt-get install -y \
+  gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl \
+  gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
 fi
 
 ################################################################################
