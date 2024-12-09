@@ -192,7 +192,7 @@ jobs:
     strategy:
         matrix:
           os: [windows-2019, windows-latest]
-          version : ["-version ${{ needs.set_env.outputs.ref_name }}", "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_09 }}", ""]
+          version : ["-version ${{ needs.set_env.outputs.ref_name }}", ""]
           with_openCV : ["", "-InstallOpenCV"]
           with_gst_option : ["", "-InstallGstTools", "-InstallGstTools -InstallGstPlugins"]
           include:
