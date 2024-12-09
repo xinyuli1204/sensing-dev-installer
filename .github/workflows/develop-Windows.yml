@@ -38,8 +38,6 @@ jobs:
       LATEST_OPENCV_VERSION: ${{ steps.set-vars.outputs.LATEST_OPENCV_VERSION }}
       LATEST_OPENCV_BIN_PATH: ${{ steps.set-vars.outputs.LATEST_OPENCV_BIN_PATH }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
       - name: Get latest release tag
         id: get_latest_tag
         run: |
