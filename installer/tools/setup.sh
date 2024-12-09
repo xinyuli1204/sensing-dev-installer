@@ -20,6 +20,8 @@ The installation path for the Sensing SDK. Default is the sensing-dev-installer 
 
 '
 
+set -e
+
 installerName="sensing-dev"
 repositoryName="Sensing-Dev/sensing-dev-installer"
 baseUrl="https://github.com/$repositoryName/releases/download/"
