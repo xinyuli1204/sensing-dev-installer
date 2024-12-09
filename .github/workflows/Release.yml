@@ -151,9 +151,12 @@ jobs:
         if: ${{ matrix.with_gst_option == '--install-gst-tools' ||  matrix.with_gst_option == '--install-gst-tools --install-gst-plugin'}}
         run: |
           gst-inspect-1.0
-          echo "==="
+
+      - name: Test gstreamer core with plugin (v24.12 or later)
+        if: ${{ matrix.with_gst_option == '--install-gst-tools --install-gst-plugin' }}
+        run: |
           gst-inspect-1.0 queue
-    
+
       - name: Test gst-plugin-base (v24.12 or later)
         if: ${{ matrix.with_gst_option == '--install-gst-tools --install-gst-plugin' }}
         run: |
@@ -270,14 +273,20 @@ jobs:
           cmake --build . --config Release 
           cd Release && ls && ./opencv_test
 
-      - name: Test gst-inspect-1.0  (v24.12 or later)
+      - name: Test gst-inspect-1.0 and gstreamer (v24.12 or later)
         if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
         run: |
           $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
           $env:PATH="$env:PATH;$PATH"
           $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
           gst-inspect-1.0
-          echo "==="
+  
+      - name: Test gstreamer core with plugin (v24.12 or later)
+        if: ${{ matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins' }}
+        run: |
+          $PATH =  [Environment]::GetEnvironmentVariable("PATH", "User")
+          $env:PATH="$env:PATH;$PATH"
+          $env:GST_PLUGIN_PATH=[Environment]::GetEnvironmentVariable("GST_PLUGIN_PATH", "User")
           gst-inspect-1.0 queue
 
       - name: Test gst-plugin-base (v24.12 or later)
