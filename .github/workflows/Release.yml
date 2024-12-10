@@ -42,6 +42,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ needs.set_env.outputs.ref_name }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -206,7 +208,12 @@ jobs:
               with_openCV: "-InstallOpenCV"
               with_gst_option : ""
               version: "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_01 }}"
-            - with_openCV: "-InstallOpenCV"
+            - os: windows-2022
+              with_openCV: "-InstallOpenCV"
+              with_gst_option : ""
+              version: "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_09 }}"
+            - os: windows-2019
+              with_openCV: "-InstallOpenCV"
               with_gst_option : ""
               version: "-version ${{ needs.set_env.outputs.SENSING_DEV_V24_09 }}"
           exclude:
