@@ -237,7 +237,7 @@ jobs:
           path: download
 
       - name: Check if version_info.json exists (v24.05 or later)
-        if: ${{ ! (matrix.version == needs.set_env.outputs.SENSING_DEV_V24_01) }}
+        if: ${{ matrix.version != format('-version {0}', env.SENSING_DEV_V24_01) }}
         run: |
           $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
           $target_file = Join-Path -Path "$SENSING_DEV_ROOT" -ChildPath "version_info.json"
