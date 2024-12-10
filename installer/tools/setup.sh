@@ -173,7 +173,7 @@ else
   echo "**********"
   echo "Install Dependencies"
   echo "**********"
-  apt-get -y upgrade && apt-get update && apt-get install -y \
+  sudo apt-get update && sudo apt-get -y upgrade && apt-get install -y \
     curl gzip git python3-pip glib2.0 libxml2-dev \
     libgirepository1.0-dev libnotify-dev \
     libunwind-dev \
