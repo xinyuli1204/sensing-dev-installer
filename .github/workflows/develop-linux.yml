@@ -8,6 +8,11 @@ on:
   pull_request:
       branches: [ release/v24.05 ]
 
+### modify here for update #####################################################
+env: 
+  SDK_VERSION: v24.05.11
+################################################################################
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -26,7 +31,7 @@ jobs:
       
       - name: Run the script to install
         run: |
-          sudo bash ${GITHUB_WORKSPACE}/installer/tools/setup.sh --develop-test
+          sudo bash ${GITHUB_WORKSPACE}/installer/tools/setup.sh --develop-test --version ${{ env.SDK_VERSION}}
 
       - name: Check if /opt/sensing-dev exists
         id: check_files
