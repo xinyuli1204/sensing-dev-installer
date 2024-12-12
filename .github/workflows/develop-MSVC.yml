@@ -6,8 +6,7 @@ on:
       - main  # This will run the build and test jobs for every push on all branches except for dev to main
 
   pull_request:
-    branches:
-      - '*'  # This will run the build and test jobs for pull requests to all branches
+      branches: [ release/v24.05 ]
 
 
 jobs:
