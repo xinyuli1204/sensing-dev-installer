@@ -4,20 +4,20 @@ libraries:
     src_path: aravis
     install_path: install/aravis
     action: download # can be 'download', 'build', or 'use_existing'
-    pkg_url: "https://github.com/Sensing-Dev/aravis/releases/download/internal-0.8.30/aravis-internal-0.8.30-win64.zip"
-    pkg_sha: "1f0ef68a9d33f9bb0c53361131bf73d67ffd3ebb4140758d914489884da93b97"
+    pkg_url: "https://github.com/Sensing-Dev/aravis/releases/download/v0.8.30-internal.1/aravis-0.8.30-internal.1-x86-64-windows.zip"
+    pkg_sha: "b78cc27c9e8b65b2eafdb27a4fd7140690b8afe1ee4bb0b8864194b470373539"
     git_repo: "https://github.com/Sensing-Dev/aravis.git"
-    version: "0.8.30-internal"
+    version: "v0.8.30-internal.1"
 
   aravis_dep:
     name: aravis_dep
     src_path: aravis_dep
     install_path: install/aravis_dep
     action: download # can be 'download', 'build', or 'use_existing'
-    pkg_url: "https://github.com/Sensing-Dev/aravis/releases/download/internal-0.8.30/Aravis-0.8.30-internal-dependencies.zip"
-    pkg_sha: "79a3a94c56d65fc63312cbb258f48be542993543fb74a33aaa8ab7ebc5c76354"
+    pkg_url: "https://github.com/Sensing-Dev/aravis/releases/download/v0.8.30-internal.1/aravis-0.8.30-internal.1-dependencies_update.zip"
+    pkg_sha: "a016fbdbcd1641471e3b222473c8cdac514092788656c7ff90cfd14e3ee1b059"
     git_repo: "https://github.com/conan-io/conan-center-index.git" # use recipe here for appropriate version
-    version: "0.8.30-internal"
+    version: "v0.8.30-internal.1"
 
   pygobject:
     name: pygobject
