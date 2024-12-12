@@ -1,9 +1,17 @@
 name: Linux Sensing dev installer Test
 
 on:
+  push:
+    branches-ignore:
+      - main  # This will run the build and test jobs for every push on all branches except for dev to main
+
   pull_request:
-    branches:
-      - '*'  # This will run the build and test jobs for pull requests to all branches
+      branches: [ release/v24.05 ]
+
+### modify here for update #####################################################
+env: 
+  SDK_VERSION: v24.05.11
+################################################################################
 
 jobs:
   test:
@@ -23,7 +31,7 @@ jobs:
       
       - name: Run the script to install
         run: |
-          sudo bash ${GITHUB_WORKSPACE}/installer/tools/setup.sh --develop-test
+          sudo bash ${GITHUB_WORKSPACE}/installer/tools/setup.sh --develop-test --version ${{ env.SDK_VERSION}}
 
       - name: Check if /opt/sensing-dev exists
         id: check_files

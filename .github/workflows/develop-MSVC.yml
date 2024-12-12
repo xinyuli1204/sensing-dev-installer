@@ -6,8 +6,7 @@ on:
       - main  # This will run the build and test jobs for every push on all branches except for dev to main
 
   pull_request:
-    branches:
-      - '*'  # This will run the build and test jobs for pull requests to all branches
+      branches: [ release/v24.05 ]
 
 
 jobs:
@@ -25,8 +24,9 @@ jobs:
          python -m pip install conan
          python -m pip install PyYAML
 
-      - name: Disable Perl (remove from PATH)
-        run: choco uninstall strawberryperl -n
+      - name: Disable perl
+        run: |
+          rm -r C:\Strawberry\perl
 
       - name: Install WiX Toolset
         run: choco install wixtoolset -y

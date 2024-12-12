@@ -66,8 +66,9 @@ jobs:
          python -m pip install conan
          python -m pip install PyYAML
 
-      - name: Disable Perl (remove from PATH)
-        run: choco uninstall strawberryperl -n
+      - name: Disable perl
+        run: |
+          rm -r C:\Strawberry\perl
 
       - name: Install WiX Toolset
         run: choco install wixtoolset -y
