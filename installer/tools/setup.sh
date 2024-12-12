@@ -50,6 +50,24 @@ declare -A gendc_separator_config=( # Declare an associative array with default 
     ["v24.05.11"]="v0.2.8"
 )
 
+unset aravis_config
+declare -A aravis_config=( # Declare an associative array with default values
+    ["v24.05.04"]="0.8.30-internal"
+    ["v24.05.05"]="0.8.30-internal"
+    ["v24.05.06"]="0.8.30-internal"
+    ["v24.05.07"]="0.8.30-internal"
+    ["v24.05.08"]="0.8.30-internal"
+    ["v24.05.09"]="0.8.30-internal"
+    ["v24.05.10"]="0.8.30-internal"
+    ["v24.05.11"]="v0.8.30-internal.1"
+)
+
+unset aravis_url
+declare -A aravis_url=( # Declare an associative array with default values
+    ["0.8.30-internal"]="https://github.com/Sensing-Dev/aravis/releases/download/internal-0.8.30/aravis-internal-0.8.30-x86-64-linux.tar.gz"
+    ["v0.8.30-internal.1"]="https://github.com/Sensing-Dev/aravis/releases/download/v0.8.30-internal.1/aravis-0.8.30-internal.1-x86-64-linux.tar.gz"
+)
+
 EARLIEST_STABLE_SDK="v24.05.04"
 
 INSTALL_PATH=/opt/sensing-dev
@@ -113,6 +131,8 @@ fi
 
 ION_KIT_VERSION=${ion_kit_config["$Alt_Version"]}
 GENDC_SEPARATOR_VERSION=${gendc_separator_config["$Alt_Version"]}
+ARAVIS_VERSION=${aravis_config["$Alt_Version"]}
+ARAVIS_URL=${aravis_url["$ARAVIS_VERSION"]}
 
 mkdir -p $INSTALL_PATH
 
@@ -130,10 +150,10 @@ apt-get -y upgrade && apt-get update && apt-get install -y curl gzip git python3
 
 echo
 echo "**********"
-echo "Install aravis=0.8.30"
+echo "Install aravis=${ARAVIS_VERSION}"
 echo "**********"
 
-curl -L https://github.com/Sensing-Dev/aravis/releases/download/internal-0.8.30/aravis-internal-0.8.30-x86-64-linux.tar.gz| tar zx -C $INSTALL_PATH --strip-components 1
+curl -L ${ARAVIS_URL}| tar zx -C $INSTALL_PATH --strip-components 1
 mkdir -p /etc/udev/rules.d
 cat > /etc/udev/rules.d/80-aravis.rules << EOS
 SUBSYSTEM=="usb", ATTRS{idVendor}=="054c", MODE:="0666", TAG+="uaccess", TAG+="udev-acl"
