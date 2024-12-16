@@ -1,6 +1,9 @@
 name: Build OpenCV 
 
-on: workflow_dispatch
+on:
+    push:
+      tags:
+        - "opencv-*.*.*"  #
 
 ### modify here for update #####################################################
 env:
@@ -13,6 +16,17 @@ jobs:
     name: Build Opencv 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Extract tag version
+      id: extract_tag
+      run: |
+        echo "TAG_VERSION=${GITHUB_REF#refs/tags/opencv-}" >> $GITHUB_ENV
+        echo "$TAG_VERSION"
+        if [ "$TAG_VERSION" != "${{ env.OPENCV_VERSION }}" ]; then
+          echo "Error: Tag version (${ env.TAG_VERSION }) does not match OPENCV_VERSION (${ env.OPENCV_VERSION })"
+          exit 1
+        fi
+        echo "Version check passed: $TAG_VERSION matches ${{ env.OPENCV_VERSION }}"
 
     - name: Check for existing cache
       id: cache_status
@@ -47,7 +61,7 @@ jobs:
       with:
         path: ${{ github.workspace }}/install
         key: ${{env.OPENCV_VERSION}}
-        
+
     - name: Create a package
       run: |
         cd ${{ github.workspace }}/install
@@ -57,6 +71,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-            ${{ github.workspace }}/opencv-${{env.OPENCV_VERSION}}-x86-64-linux.tar.gz
+            ${{ github.workspace }}/${{env.OPENCV_VERSION}}-x86-64-linux.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
