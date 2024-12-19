@@ -72,6 +72,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-            ${{env.OPENCV_VERSION}}-x86-64-linux.tar.gz
+            opencv-${{env.OPENCV_VERSION}}-x86-64-linux.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
