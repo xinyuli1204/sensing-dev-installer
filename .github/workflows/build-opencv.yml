@@ -20,7 +20,8 @@ jobs:
     - name: Extract tag version
       id: extract_tag
       run: |
-        echo "TAG_VERSION=${{github.ref_name}}#*opencv-" >> $GITHUB_ENV
+        TAG_VERSION=${{github.ref_name}}
+        TAG_VERSION=${TAG_VERSION#*opencv-}
         echo "$TAG_VERSION"
         if [ "$TAG_VERSION" != "${{ env.OPENCV_VERSION }}" ]; then
           echo "Error: Tag version (${ env.TAG_VERSION }) does not match OPENCV_VERSION (${ env.OPENCV_VERSION })"
