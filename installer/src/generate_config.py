@@ -88,11 +88,12 @@ def generate_url(cmp, version, pf):
                 print('OpenCV', version, 'is not supported on', pf)
                 sys.exit(1)
         elif pf == 'Linux':
-            updated_ver = '4.5.2'
-            if updated_ver == '4.5.2':
-                url += 'https://ion-kit.s3.us-west-2.amazonaws.com/dependencies/OpenCV-4.5.2-x86_64-gcc75.sh'
+            if version == '4.10.0':
+                url = 'https://github.com/Sensing-Dev/sensing-dev-installer/releases/download/opencv-4.10.0/opencv-4.10.0-x86-64-linux.tar.gz'
             else:
-                print('OpenCV', version, 'is not supported on', pf)
+                print('OpenCV 4.5.2 (default) or 4.10.0 are supported for Linux ')
+                updated_ver = '4.5.2'
+                url = 'https://ion-kit.s3.us-west-2.amazonaws.com/dependencies/OpenCV-4.5.2-x86_64-gcc75.sh'
         else:
             print('Platform', pf, 'is not supported.')
             sys.exit(1)
