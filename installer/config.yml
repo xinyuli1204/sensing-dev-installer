@@ -1,15 +1,15 @@
 libraries:
   aravis:
     name: aravis
-    pkg_sha: "df099e49a82ba3f4347066d15c752861dae261bac93b23a48d52f050f63ae169"
+    pkg_sha: "03f5d736c4e1014c2668b37468a3c1c3af8edd08badc1c766f661ddd69a3658a"
     git_repo: "https://github.com/Sensing-Dev/aravis.git"
-    version: "v0.8.31-internal.1"
+    version: "v0.8.31.dev1"
 
   aravis_dep:
     name: aravis_dep
-    pkg_sha: "a0c32b5dcf4f6d6df721edd6570b113c0a8c9f79c80a442cdf7cfe241c3a52e9"
+    pkg_sha: "95186639afc566c4235ad95ba86bb1fb29d4af26983122d689eb2bb86ed970cf"
     git_repo: "" # use recipe here for appropriate version
-    version: "v0.8.31-internal.1"
+    version: "v0.8.31.dev1"
 
   ion_kit:
     name: ion-kit
