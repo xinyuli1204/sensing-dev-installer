@@ -303,6 +303,11 @@ jobs:
           cd ${{ github.workspace }}/download/installer/testcases/python
           python aravis_test.py
 
+      - name: Test GenDC
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python gendc_test.py
+
 
           
     

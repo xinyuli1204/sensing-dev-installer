@@ -255,7 +255,10 @@ jobs:
           cd ${{ github.workspace }}/download/installer/testcases/python
           python opencv_test.py
 
-
+      - name: Test GenDC
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python gendc_test.py
 
 
 
