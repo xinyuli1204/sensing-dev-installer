@@ -25,9 +25,9 @@ libraries:
 
   gendc_separator:
     name: gendc_separator
-    pkg_sha: "e3bde8fce1b293d2db25bbfb0244e7c3245e523b7d64bf78ef26b5585e585959"
+    pkg_sha: "ccbf0d2fbf06af458e1f4a3a380e2d8a6d5f61161c8c269a7151ee0fda0fcb52"
     git_repo: "https://github.com/Sensing-Dev/GenDC.git"
-    version: "v0.3.5"
+    version: "v0.4.0a2"
 
   gst_tool:
     name: "gstreamer tools"

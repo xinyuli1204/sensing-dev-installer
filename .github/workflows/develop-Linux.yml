@@ -147,6 +147,15 @@ jobs:
           eval "$python_output"
           ./opencv_test
 
+      - name: Test GenDC Header Library (v25.01 or later)
+        if: ${{ matrix.install_option == '--config-path config_Linux.json' }}
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/gendc_test
+          python_output=$(python ${{ github.workspace }}/download/installer/testcases/cpp/get_compile_command.py gendc_test.cpp)
+          echo "Python script output: $python_output"
+          eval "$python_output"
+          ./gendc_test
+
       - name: Test gst-inspect-1.0 (v24.12 or later)
         if: ${{ matrix.with_gst_option == '--install-gst-tools' ||  matrix.with_gst_option == '--install-gst-tools --install-gst-plugin'}}
         run: |
