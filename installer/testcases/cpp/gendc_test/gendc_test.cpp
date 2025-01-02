@@ -23,7 +23,6 @@ int main(int argc, char *argv[])
             std::cerr << "Wrong result.\n";
             return 1;
         }
-        delete[] bin_non_gendc;
     }
     catch(std::exception& e) {
          std::cout << e.what() << std::endl;
