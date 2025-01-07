@@ -189,7 +189,7 @@ fi
 # Install Gst plugins
 ################################################################################
 
-if [ -n "$InstallGstPlugins" ]; then
+if [ $InstallGstPlugins == true ]; then
   echo "**********"
   echo "Install gst-plugins"
   echo "**********"
@@ -201,7 +201,7 @@ fi
 # Install Gst tools
 ################################################################################
 
-if [ -n "$InstallGstTools" ]; then
+if [ $InstallGstTools == true ]; then
   echo "**********"
   echo "Install gst-tools"
   echo "**********"
