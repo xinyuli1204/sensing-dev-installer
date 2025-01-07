@@ -169,6 +169,15 @@ jobs:
           cmake --build . --config Release 
           cd Release && ./opencv_test
 
+      - name: Test GenDC Header Library (v25.01 or later)
+        if: ${{ matrix.install_option == '--configPath config_Windows.json' }}
+        run: |
+          $SENSING_DEV_ROOT= [Environment]::GetEnvironmentVariable("SENSING_DEV_ROOT", "User")
+          $env:SENSING_DEV_ROOT=${SENSING_DEV_ROOT} 
+          cd ${{ github.workspace }}/download/installer/testcases/cpp/gendc_test && cmake ./
+          cmake --build . --config Release 
+          cd Release && ls && ./gendc_test
+
       - name: Test gst-inspect-1.0 and gstreamer (v24.12 or later)
         if: ${{ matrix.with_gst_option == '-InstallGstTools' ||  matrix.with_gst_option == '-InstallGstTools -InstallGstPlugins'}}
         run: |
@@ -293,6 +302,11 @@ jobs:
         run: |
           cd ${{ github.workspace }}/download/installer/testcases/python
           python aravis_test.py
+
+      - name: Test GenDC
+        run: |
+          cd ${{ github.workspace }}/download/installer/testcases/python
+          python gendc_test.py
 
 
           

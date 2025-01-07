@@ -53,8 +53,8 @@ while [[ "$#" -gt 0 ]]; do
     --user) user="$2"; shift ;;
     --installPath) installPath="$2"; shift ;;
     --install-opencv) InstallOpenCV=true ;;
-    --install-gst-tools) InstallGstPlugins=true ;;
-    --install-gst-plugin) InstallGstTools=true ;;
+    --install-gst-tools) InstallGstTools=true ;;
+    --install-gst-plugin) InstallGstPlugins=true ;;
     --debugScript) debugScript=true ;;
     --config-path) configPath="$2"; shift ;;
     --archiveAravis) archiveAravis="$2"; shift ;;
@@ -189,7 +189,7 @@ fi
 # Install Gst plugins
 ################################################################################
 
-if [ -n "$InstallGstPlugins" ]; then
+if [ $InstallGstPlugins == true ]; then
   echo "**********"
   echo "Install gst-plugins"
   echo "**********"
@@ -201,7 +201,7 @@ fi
 # Install Gst tools
 ################################################################################
 
-if [ -n "$InstallGstTools" ]; then
+if [ $InstallGstTools == true ]; then
   echo "**********"
   echo "Install gst-tools"
   echo "**********"
