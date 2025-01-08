@@ -1,17 +1,5 @@
 name: Generate Linux Config and test installation with script
 
-# This workflow generate and copy
-# 1. config_Windows.json based on the current latest config & release tag
-# 2. setup.sh
-# to artifact
-# 
-# Then test installation with combination of 
-# [latest release, config_Linux.json]
-# [ubuntu-22.04]
-# [with/without OpenCV]
-#
-# For Aravis, we did not add the Python test yet
-# TODO: after separate C++ and Python installation of Aravis, setup test
 
 on:
   pull_request:
