@@ -1,21 +1,5 @@
 name: Generate Windows Config and test installation with script
 
-# This workflow generate and copy
-# 1. config_Windows.json based on the current latest config & release tag
-# 2. installer.ps1
-# to artifact
-# 
-# Then test installation with combination of 
-# [latest release, config_Windows.json]
-# [MSVC 2019 and 2022]
-# [with/without OpenCV]
-# 
-# Note that MSVC 2022 (17.10 or later in the future) cannot find OpenCV 4.5.5
-# So install OpenCV 4.10.0 for MSVC 2022
-# Reference: https://github.com/Sensing-Dev/sensing-dev-installer/pull/111
-#
-# For Aravis, we did not add the Python test yet
-# TODO: after separate C++ and Python installation of Aravis, setup test
 
 on:
   pull_request:
