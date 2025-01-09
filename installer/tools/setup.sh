@@ -193,7 +193,7 @@ if [ $InstallGstPlugins == true ]; then
   echo "**********"
   echo "Install gst-plugins"
   echo "**********"
-  apt-get -y upgrade && apt-get update && apt-get install -y \
+  apt-get update && apt-get install -y \
   gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
 fi
 
