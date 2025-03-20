@@ -122,7 +122,7 @@ function Invoke-Script {
         # Install opencv-python
         ########################################################################
         Write-Host "Installing opencv-python..."
-        pip3 install --no-binary opencv-python opencv-python==4.10.0.84 --verbose 
+        pip3 install --no-binary opencv-python opencv-python --verbose
 
 
     }
