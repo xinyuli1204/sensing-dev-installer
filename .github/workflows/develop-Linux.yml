@@ -183,7 +183,7 @@ jobs:
     needs: [set_env, generate_config]
     strategy:
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-22.04,ubuntu-latest]
         python_version: ["3.10", "3.11"]
 
     steps:
@@ -197,6 +197,16 @@ jobs:
         with:
           name: install-test-for-linux
           path: download
+
+      - name: Install libgirepository1
+        if: ${{ matrix.os == 'ubuntu-22.04' }}
+        run: |
+            sudo apt install -y libgirepository1.0-dev
+
+      - name: Install libgirepository2
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+            sudo apt install -y libgirepository2.0-dev  
 
       - name: Get config content and install python modules
         run: | 
@@ -217,7 +227,7 @@ jobs:
           pip install gendc-python==$gendc_separator_version
           pip install numpy
           pip install opencv-python
-          sudo apt install -y libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0
+          sudo apt install -y gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0
           pip install aravis-python
           pip3 install pycairo==1.27.0
           pip3 install PyGObject==3.50.0
