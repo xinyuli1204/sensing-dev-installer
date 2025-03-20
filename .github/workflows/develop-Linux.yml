@@ -198,20 +198,11 @@ jobs:
           name: install-test-for-linux
           path: download
 
-      - name: Install libgirepository1
+      - name: Get config content and install python modules for ubuntu-22
         if: ${{ matrix.os == 'ubuntu-22.04' }}
         run: |
           sudo apt-get update 
           sudo apt-get install -y libgirepository1.0-dev jq
-
-      - name: Install libgirepository2
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          sudo apt-get update 
-          sudo apt-get install -y libgirepository-2.0-dev jq
-
-      - name: Get config content and install python modules
-        run: |
           config_file="${{ github.workspace }}/download/build/config_Linux.json"
           ionkit_version=$(jq -r '.ion_kit.version' $config_file)
           gendc_separator_version=$(jq -r '.gendc_separator.version' $config_file)
@@ -224,6 +215,32 @@ jobs:
             gendc_separator_version=${gendc_separator_version:1}
           fi
           
+          pip install ion-contrib-python==$ionkit_version
+          pip install gendc-python==$gendc_separator_version
+          pip install numpy
+          pip install opencv-python
+          sudo apt install -y gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0
+          pip install aravis-python
+          pip3 install pycairo
+          pip3 install PyGObject==3.48.2
+
+      - name: Get config content and install python modules for ubuntu-latest
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get update 
+          sudo apt-get install -y libgirepository-2.0-dev jq
+          config_file="${{ github.workspace }}/download/build/config_Linux.json"
+          ionkit_version=$(jq -r '.ion_kit.version' $config_file)
+          gendc_separator_version=$(jq -r '.gendc_separator.version' $config_file)
+
+          if [[ $ionkit_version == v* ]]; then
+            ionkit_version=${ionkit_version:1}
+          fi
+
+          if [[ $gendc_separator_version == v* ]]; then
+            gendc_separator_version=${gendc_separator_version:1}
+          fi
+
           pip install ion-contrib-python==$ionkit_version
           pip install gendc-python==$gendc_separator_version
           pip install numpy
