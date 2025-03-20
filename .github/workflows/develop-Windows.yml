@@ -8,7 +8,7 @@ on:
 
 ### modify here for update #####################################################
 env:
-  TEST_CONFIG_VERSION_SDK: v99.99.99 
+  TEST_CONFIG_VERSION_SDK: v99.99.99
   LATEST_OPENCV_VERSION: 4.10.0
   LATEST_OPENCV_BIN_PATH: opencv/build/x64/vc16/bin
   REPO_NAME: Sensing-Dev/sensing-dev-installer
@@ -294,7 +294,7 @@ jobs:
 
 
           
-    
+
   test_gst_opencv:
     runs-on: ${{ matrix.os }}
     needs: [set_env, generate_config]
@@ -331,7 +331,7 @@ jobs:
       - name: Install Numpy
         run: | 
           pip install numpy==2.1.1 
-          
+
       - name: Install OpenCV (for overwrite test)
         if: ${{ matrix.overwrite_opencv }}
         continue-on-error: true
@@ -351,6 +351,10 @@ jobs:
         run: | 
           cd ${{ github.workspace }}/download/installer/tools/
           powershell.exe -ExecutionPolicy Bypass -File .\opencv_python_installer.ps1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "The opencv_python_installer.ps1 script failed."
+            exit 1
+          }
 
       - name: Test opencv-python with gstreamer
         run: |

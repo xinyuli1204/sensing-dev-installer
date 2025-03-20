@@ -7,7 +7,7 @@ on:
       - main
 
 ### modify here for update #####################################################
-env: 
+env:
   TEST_CONFIG_VERSION_SDK: v99.99.99
   REPO_NAME: Sensing-Dev/sensing-dev-installer
 ################################################################################
@@ -25,11 +25,11 @@ jobs:
         run: |
           latest_tag=$(curl -s https://api.github.com/repos/${{ env.REPO_NAME}}/releases/latest | jq -r .tag_name)
           echo "LATEST_RELEASED_SDK=${latest_tag}" >> $GITHUB_OUTPUT
+  
+  
+  
+  
 
-
-
-
-        
   generate_config:
     runs-on: ubuntu-22.04
 
@@ -61,20 +61,20 @@ jobs:
 
   test_installation:
     runs-on: ${{ matrix.os }}
-    needs: [set_env, generate_config]
+    needs: [ set_env, generate_config ]
 
     strategy:
-        matrix:
-          os: [ubuntu-22.04]
-          install_option : ["--version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}", "--config-path config_Linux.json"]
-          with_openCV : ["", "--install-opencv"]
-          with_gst_option:  ["", "--install-gst-tools", "--install-gst-tools --install-gst-plugin"]
-          exclude:
-            # InstallGstTools is not on the release version yet
-            - install_option: "--version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}"
-              with_gst_option: "--install-gst-tools"
-            - install_option: "--version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}"
-              with_gst_option: "--install-gst-tools --install-gst-plugin"
+      matrix:
+        os: [ ubuntu-22.04 ]
+        install_option: [ "--version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}", "--config-path config_Linux.json" ]
+        with_openCV: [ "", "--install-opencv" ]
+        with_gst_option: [ "", "--install-gst-tools", "--install-gst-tools --install-gst-plugin" ]
+        exclude:
+          # InstallGstTools is not on the release version yet
+          - install_option: "--version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}"
+            with_gst_option: "--install-gst-tools"
+          - install_option: "--version ${{ needs.set_env.outputs.LATEST_RELEASED_SDK }}"
+            with_gst_option: "--install-gst-tools --install-gst-plugin"
 
     steps:
       - name: Download All Artifacts
@@ -84,7 +84,7 @@ jobs:
           path: download
 
       - name: Set all items under test directory
-        run: | 
+        run: |
           mkdir -p ${{ github.workspace }}/test
           mv ${{ github.workspace }}/download/build/config_Linux.json ${{ github.workspace }}/test
           mv ${{ github.workspace }}/download/installer/tools/setup.sh ${{ github.workspace }}/test
@@ -150,7 +150,7 @@ jobs:
           gst-inspect-1.0
           echo "==="
           gst-inspect-1.0 queue
-  
+
       - name: Test gst-plugin-base (v24.12 or later)
         if: ${{ matrix.with_gst_option == '--install-gst-tools --install-gst-plugin' }}
         run: |
@@ -173,18 +173,18 @@ jobs:
         run: |
           export GST_PLUGIN_PATH=/opt/sensing-dev/lib/x86_64-linux-gnu/gstreamer-1.0/:$GST_PLUGIN_PATH
           gst-inspect-1.0 gendcseparator
-
-
-
-          
+  
+  
+  
+  
 
   test_python:
     runs-on: ${{ matrix.os }}
-    needs: [set_env, generate_config]
+    needs: [ set_env, generate_config ]
     strategy:
       matrix:
-        os: [ubuntu-22.04,ubuntu-latest]
-        python_version: ["3.10", "3.11"]
+        os: [ ubuntu-22.04,ubuntu-latest ]
+        python_version: [ "3.10", "3.11" ]
 
     steps:
       - name: Setup Python
@@ -198,19 +198,11 @@ jobs:
           name: install-test-for-linux
           path: download
 
-      - name: Install libgirepository1
+      - name: Get config content and install python modules for ubuntu-22
         if: ${{ matrix.os == 'ubuntu-22.04' }}
         run: |
-            sudo apt install -y libgirepository1.0-dev
-
-      - name: Install libgirepository2
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-            sudo apt install -y libgirepository2.0-dev  
-
-      - name: Get config content and install python modules
-        run: | 
-          apt-get -y upgrade && apt-get update && apt-get install -y jq 
+          sudo apt-get update 
+          sudo apt-get install -y libgirepository1.0-dev jq
           config_file="${{ github.workspace }}/download/build/config_Linux.json"
           ionkit_version=$(jq -r '.ion_kit.version' $config_file)
           gendc_separator_version=$(jq -r '.gendc_separator.version' $config_file)
@@ -229,8 +221,35 @@ jobs:
           pip install opencv-python
           sudo apt install -y gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0
           pip install aravis-python
-          pip3 install pycairo==1.27.0
-          pip3 install PyGObject==3.50.0
+          pip3 install pycairo
+          pip3 install PyGObject==3.48.2
+
+      - name: Get config content and install python modules for ubuntu-latest
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get update 
+          sudo apt-get install -y libgirepository-2.0-dev jq
+          config_file="${{ github.workspace }}/download/build/config_Linux.json"
+          ionkit_version=$(jq -r '.ion_kit.version' $config_file)
+          gendc_separator_version=$(jq -r '.gendc_separator.version' $config_file)
+
+          if [[ $ionkit_version == v* ]]; then
+            ionkit_version=${ionkit_version:1}
+          fi
+
+          if [[ $gendc_separator_version == v* ]]; then
+            gendc_separator_version=${gendc_separator_version:1}
+          fi
+
+          pip install ion-contrib-python==$ionkit_version
+          pip install gendc-python==$gendc_separator_version
+          pip install numpy
+          pip install opencv-python
+          sudo apt install -y gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0
+          pip install aravis-python
+          pip3 install pycairo
+          pip3 install PyGObject
+
 
       - name: Test Aravis
         run: |
@@ -262,11 +281,11 @@ jobs:
 
   test_gst_opencv:
     runs-on: ${{ matrix.os }}
-    needs: [set_env, generate_config]
+    needs: [ set_env, generate_config ]
     strategy:
       matrix:
-        os: [ubuntu-22.04]
-        python_version: ["3.10", "3.11"]      
+        os: [ ubuntu-22.04 ]
+        python_version: [ "3.10", "3.11" ]
 
     steps:
       - name: Setup Python
@@ -281,14 +300,14 @@ jobs:
           path: download
 
       - name: Install Numpy
-        run: | 
+        run: |
           pip3 install numpy
 
       - name: Install gstreamer
         run: |
           sudo apt-get update
           sudo apt-get install libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio -y
-    
+
       - name: Install OpenCV
         run: |
           pip3 install --no-binary opencv-python opencv-python==4.10.0.84 --verbose    
