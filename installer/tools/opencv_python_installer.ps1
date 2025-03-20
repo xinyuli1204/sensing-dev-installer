@@ -115,7 +115,7 @@ function Invoke-Script {
         Write-Output "Add PATH=$BuildtimeDepndency\lib\glib-2.0\include"
         Write-Output "Add PATH=$BuildtimeDepndency\include\glib-2.0"
         Write-Output "Add PATH=$BuildtimeDepndency\include\gstreamer-1.0"
-        $env:CMAKE_ARGS = "-DWITH_GSTREAMER=ON -DCMAKE_CXX_STANDARD=20"
+        $env:CMAKE_ARGS = "-DWITH_GSTREAMER=ON"
         Write-Output "Set CMAKE_ARGS=$env:CMAKE_ARGS"
 
         ########################################################################
