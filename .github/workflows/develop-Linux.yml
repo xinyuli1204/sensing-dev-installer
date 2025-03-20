@@ -201,16 +201,17 @@ jobs:
       - name: Install libgirepository1
         if: ${{ matrix.os == 'ubuntu-22.04' }}
         run: |
+            apt-get -y upgrade && apt-get update && apt-get install -y jq
             sudo apt install -y libgirepository1.0-dev
 
       - name: Install libgirepository2
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
+            apt-get -y upgrade && apt-get update && apt-get install -y jq
             sudo apt install -y libgirepository2.0-dev  
 
       - name: Get config content and install python modules
-        run: | 
-          apt-get -y upgrade && apt-get update && apt-get install -y jq 
+        run: |  
           config_file="${{ github.workspace }}/download/build/config_Linux.json"
           ionkit_version=$(jq -r '.ion_kit.version' $config_file)
           gendc_separator_version=$(jq -r '.gendc_separator.version' $config_file)
