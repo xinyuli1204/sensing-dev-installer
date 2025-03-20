@@ -219,8 +219,8 @@ jobs:
           pip install opencv-python
           sudo apt install -y libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0
           pip install aravis-python
-          pip3 install pycairo
-          pip3 install PyGObject
+          pip3 install pycairo==1.27.0
+          pip3 install PyGObject==3.50.0
 
       - name: Test Aravis
         run: |
